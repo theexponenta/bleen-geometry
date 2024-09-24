@@ -1,0 +1,5 @@
+include './Move/MoveTool.asm'
+include './Point/PointTool.asm'
+include './Segment/SegmentTool.asm'
+include './CircleWithCenter/CircleWithCenterTool.asm'
+include './Line/LineTool.asm'
