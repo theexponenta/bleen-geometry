@@ -15,6 +15,19 @@ proc LineTool.SelectPoint1
 endp
 
 
+proc LineTool.Cancel uses ebx
+   mov ebx, Points
+   stdcall Main.DeleteLastPoint
+
+   mov ebx, Objects
+   stdcall HeterogenousVector.Pop
+
+   mov [CurrentStateId], LineTool.States.SelectPoint1
+
+   ret
+endp
+
+
 proc LineTool.SetSelectPoint1
     mov [CurrentStateId], LineTool.States.SelectPoint1
     ret

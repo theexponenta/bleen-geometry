@@ -1,11 +1,15 @@
 
 proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
-    cmp [wmsg], WM_DESTROY
+    mov eax, [wmsg]
+
+    cmp eax, WM_DESTROY
     je .Wmdestroy
-    cmp [wmsg], WM_CREATE
+    cmp eax, WM_CREATE
     je .Wmcreate
-    cmp [wmsg], WM_COMMAND
+    cmp eax, WM_COMMAND
     je .Wmcommand
+    cmp eax, WM_KEYDOWN
+    je .Wmkeydown
  
     .Defwndproc:
         invoke DefWindowProc, [hwnd], [wmsg], [wparam], [lparam]
@@ -34,9 +38,12 @@ proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
         mov [CurrentStateId], 1
         jmp .Return_0
 
+    .Wmkeydown:
+        invoke PostMessage, [DrawArea.hwnd], [wmsg], [wparam], [lparam]
+        jmp .Return_0
+
     .Wmdestroy:
         invoke PostQuitMessage,0
-        jmp .Return_0
 
     .Return_0:
         xor eax, eax

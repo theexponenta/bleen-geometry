@@ -17,10 +17,10 @@ endp
 
 proc SegmentTool.Cancel uses ebx
    mov ebx, Points
-   stdcall Vector.Pop
+   stdcall Main.DeleteLastPoint
 
    mov ebx, Objects
-   stdcall Vector.Pop
+   stdcall HeterogenousVector.Pop
 
    mov [CurrentStateId], SegmentTool.States.SelectPoint1
 

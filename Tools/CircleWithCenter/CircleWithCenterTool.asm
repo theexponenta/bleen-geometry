@@ -15,6 +15,19 @@ proc CircleWithCenterTool.SelectCenterPoint
 endp
 
 
+proc CircleWithCenterTool.Cancel
+    mov ebx, Points
+    stdcall Main.DeleteLastPoint
+
+    mov ebx, Objects
+    stdcall HeterogenousVector.Pop
+
+    mov [CurrentStateId], CircleWithCenterTool.States.SelectCenterPoint
+
+    ret
+endp
+
+
 proc CircleWithCenterTool.SetSelectCenterPoint
     mov [CurrentStateId], CircleWithCenterTool.States.SelectCenterPoint
     ret

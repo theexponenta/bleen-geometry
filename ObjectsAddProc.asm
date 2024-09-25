@@ -31,6 +31,15 @@ proc Main.AddPoint uses ebx, X, Y, ParentObjectId
 endp
 
 
+proc Main.DeleteLastPoint uses ebx
+    mov ebx, Points
+    call Vector.Pop
+    dec [NextPointNum]
+
+    ret
+endp
+
+
 proc Main.AddSegment uses ebx, Point1Id, Point2Id
     local NewSegment Segment ?
 

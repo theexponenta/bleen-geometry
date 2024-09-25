@@ -10,7 +10,8 @@ CircleWithCenterTool.States.SelectCenterPoint.Transitions dd WM_LBUTTONDOWN, Cir
 
 CircleWithCenterTool.States.SelectSecondPoint.Transitions dd WM_MOUSEMOVE, 1, \
                                                              WM_LBUTTONDOWN, CircleWithCenterTool.SelectSecondPoint, \
-                                                             WM_LBUTTONUP, CircleWithCenterTool.SetSelectCenterPoint, 0
+                                                             WM_LBUTTONUP, CircleWithCenterTool.SetSelectCenterPoint, \
+                                                             VK_ESCAPE, CircleWithCenterTool.Cancel, 0
 
 
 CircleWithCenterTool.States.Transitions dd CircleWithCenterTool.States.SelectCenterPoint.Transitions, CircleWithCenterTool.States.SelectSecondPoint.Transitions, 0

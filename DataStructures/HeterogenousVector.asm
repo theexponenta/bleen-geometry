@@ -69,3 +69,11 @@ proc HeterogenousVector.Push uses ebx edi, pElem, Size
     pop eax
     ret
 endp
+
+
+proc HeterogenousVector.Pop uses ebx
+    add ebx, HeterogenousVector.Sizes
+    stdcall Vector.Pop
+
+    ret
+endp
