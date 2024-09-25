@@ -113,6 +113,13 @@ proc Line.Draw uses edi, hdc
     mov [P2.x], edx
     mov [P2.y], eax
 
+    ; If P1 and P2 are the same points, just don't draw a line
+    cmp edx, [P1.x]
+    jne @F
+    cmp eax, [P1.y]
+    je .Return
+
+    @@:
     ; X2*Y1 - X1*Y2
     fild [P2.x]
     fimul [P1.y]
@@ -181,6 +188,7 @@ proc Line.Draw uses edi, hdc
 
     stdcall Draw.Line, [hdc], [P1Border.x], [P1Border.y], [P2Border.x], [P2Border.y], [ebx + Line.Width], [ebx + Line.Color]
 
+    .Return:
     ret
 endp
 
