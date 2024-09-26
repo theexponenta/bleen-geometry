@@ -17,17 +17,25 @@ proc Draw.Circle, hdc, X, Y, Radius
 endp
 
 
-proc Draw.Line uses ebx, hdc, X1, Y1, X2, Y2, Width, Color
-    invoke CreatePen, PS_SOLID, [Width], [Color]
+proc Draw.Line uses ebx, pGdipGraphics, X1, Y1, X2, Y2, Width, Color
+    locals
+        GpPen dd ?
+    endl
+
+    lea eax, [GpPen]
+    invoke GdipCreatePen1, [Color], [Width], NULL, eax
     mov ebx, eax
-    invoke SelectObject, [hdc], eax
+    ;invoke SelectObject, [hdc], eax
 
-    invoke MoveToEx, [hdc], [X1], [Y1], NULL
-    invoke LineTo, [hdc], [X2], [Y2]
+    invoke GdipDrawLineI, [pGdipGraphics], [GpPen], [X1], [Y1], [X2], [Y2]
+    ;invoke MoveToEx, [hdc], [X1], [Y1], NULL
+    ;invoke LineTo, [hdc], [X2], [Y2]
 
-    invoke GetStockObject, DC_PEN
-    invoke SelectObject, [hdc], eax
-    invoke DeleteObject, ebx
+    invoke GdipDeletePen, [GpPen]
+
+    ;invoke GetStockObject, DC_PEN
+    ;invoke SelectObject, [hdc], eax
+    ;invoke DeleteObject, ebx
 
     ret
 endp

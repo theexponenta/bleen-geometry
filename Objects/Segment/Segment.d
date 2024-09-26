@@ -1,2 +1,2 @@
 
-Segment.SelectedShadowWidthCoefficient dq 1.5
+Segment.SelectedShadowWidthCoefficient dq 3.0

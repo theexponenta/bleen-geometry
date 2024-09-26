@@ -38,6 +38,8 @@ proc DrawArea.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
         invoke CreateCompatibleBitmap, [DrawArea.hDC], [DrawArea.Width], [DrawArea.Height]
         invoke SelectObject, [DrawArea.MemDC], eax
 
+        invoke GdipCreateFromHDC, [DrawArea.MemDC], DrawArea.pGdipGraphics
+
         jmp .Return_0
 
     .Wmpaint:

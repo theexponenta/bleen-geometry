@@ -55,7 +55,7 @@ proc Main.AddLine uses ebx, Point1Id, Point2Id
     local NewLine Segment ?
 
     lea ebx, [NewLine]
-    stdcall Line.Create, [NextObjectId], 0, 0, [Point1Id], [Point2Id], Segment.DefaultWidth, Segment.DefaultColor
+    stdcall Line.Create, [NextObjectId], 0, 0, [Point1Id], [Point2Id], Line.DefaultWidth, Segment.DefaultColor
     stdcall Main.AddObject, ebx, sizeof.Line
 
     ret

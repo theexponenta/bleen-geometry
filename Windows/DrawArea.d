@@ -4,8 +4,10 @@ DrawArea.hwnd dd ?
 DrawArea.hDC dd ?
 DrawArea.MemDC dd ?
 DrawArea.PaintStruct PAINTSTRUCT ?
+DrawArea.pGdipGraphics dd ?
 DrawArea.Width dd ?
 DrawArea.Height dd ?
+
 DrawArea.OffsetX = 32
 DrawArea.OffsetY = 0
 

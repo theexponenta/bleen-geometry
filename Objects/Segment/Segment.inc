@@ -10,8 +10,8 @@ struct Segment GeometryObject
 ends
 
 
-Segment.DefaultColor = 0x616161
-Segment.DefaultWidth = 3
+Segment.DefaultColor = 0xFF616161
+Segment.DefaultWidth equ 3.0
 Segment.SelectedShadowOpacity = 60
 
 

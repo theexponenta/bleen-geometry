@@ -99,6 +99,8 @@ proc Line.Draw uses edi, hdc
 
         P1Border POINT ?
         P2Border POINT ?
+
+        SelectedWidth dd ?
     endl
 
     mov eax, [ebx + Line.Point1Id]
@@ -186,7 +188,19 @@ proc Line.Draw uses edi, hdc
     fstp st0
     fstp st0
 
-    stdcall Draw.Line, [hdc], [P1Border.x], [P1Border.y], [P2Border.x], [P2Border.y], [ebx + Line.Width], [ebx + Line.Color]
+    cmp [ebx + Line.IsSelected], 0
+    je @F
+
+    mov eax, [ebx + Line.Color]
+    and eax, 0xFFFFFF
+    or eax, Line.SelectedShadowOpacity shl 24
+    fld dword [ebx + Line.Width]
+    fmul [Line.SelectedShadowWidthCoefficient]
+    fstp [SelectedWidth]
+    stdcall Draw.Line, [DrawArea.pGdipGraphics], [P1Border.x], [P1Border.y], [P2Border.x], [P2Border.y], [SelectedWidth], eax
+
+    @@:
+    stdcall Draw.Line, [DrawArea.pGdipGraphics], [P1Border.x], [P1Border.y], [P2Border.x], [P2Border.y], [ebx + Line.Width], [ebx + Line.Color]
 
     .Return:
     ret
@@ -208,7 +222,7 @@ proc Line.IsOnPosition X, Y
     ; All the arguments are pushed above
     stdcall Math.DistanceLinePoint
 
-    fild [ebx + Line.Width]
+    fld [ebx + Line.Width]
     fcomip st0, st1
     fstp st0
     mov eax, 1

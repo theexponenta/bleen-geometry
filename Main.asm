@@ -28,6 +28,8 @@ proc WinMain
     mov ebx, Points
     stdcall Vector.Create, sizeof.Point, 0, 26
 
+    invoke GdiplusStartup, GdipToken, GdipStartupInput, NULL
+
     invoke CreateSolidBrush, 0xFFFFFF
     mov [hbrWhite], eax
     invoke CreatePen, PS_SOLID, 1, 0xFFFFFF
@@ -89,6 +91,7 @@ proc WinMain
         invoke MessageBox, NULL, Error, NULL, MB_ICONERROR + MB_OK
 
     .EndLoop:
+        invoke GdiplusShutdown, [GdipToken]
         invoke ExitProcess, [Msg.wParam]
 endp
 
@@ -433,6 +436,9 @@ section '.data' data readable writeable
   DC_BRUSH = 18
   DC_PEN = 19
 
+  GdipToken dd ?
+  GdipStartupInput dd 1, 0, 0, 0, 0
+
   hpWhite dd ?
   hbrWhite dd ?
 
@@ -464,7 +470,16 @@ section '.idata' import data readable writeable
   library kernel32, 'KERNEL32.DLL',\
           user32, 'USER32.DLL',\
           comctl32, 'COMCTL32.DLL', \
-          gdi32, 'GDI32.DLL'
+          gdi32, 'GDI32.DLL', \
+          gdiplus, 'GDIPLUS.dll'
+
+  import gdiplus, \
+         GdiplusStartup, 'GdiplusStartup', \
+         GdiplusShutdown, 'GdiplusShutdown', \
+         GdipDrawLineI, 'GdipDrawLineI', \
+         GdipCreatePen1, 'GdipCreatePen1', \
+         GdipCreateFromHDC, 'GdipCreateFromHDC', \
+         GdipDeletePen, 'GdipDeletePen'
 
   include 'api\kernel32.inc'
 
