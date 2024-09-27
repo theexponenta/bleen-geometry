@@ -479,7 +479,11 @@ section '.idata' import data readable writeable
          GdipDrawLineI, 'GdipDrawLineI', \
          GdipCreatePen1, 'GdipCreatePen1', \
          GdipCreateFromHDC, 'GdipCreateFromHDC', \
-         GdipDeletePen, 'GdipDeletePen'
+         GdipDeletePen, 'GdipDeletePen', \
+         GdipDrawEllipseI, 'GdipDrawEllipseI', \
+         GdipFillEllipseI, 'GdipFillEllipseI', \
+         GdipCreateSolidFill, 'GdipCreateSolidFill', \
+         GdipDeleteBrush, 'GdipDeleteBrush'
 
   include 'api\kernel32.inc'
 

@@ -24,6 +24,8 @@ proc CircleWithCenter.Draw hdc
         CenterX dd ?
         CenterY dd ?
         hPen dd ?
+
+        SelectedWidth dd ?
     endl
 
     ; Calculate radius + save center points
@@ -40,18 +42,19 @@ proc CircleWithCenter.Draw hdc
     stdcall Math.Distance
     fistp [Radius]
 
-    invoke GetStockObject, NULL_BRUSH
-    invoke SelectObject, [hdc], eax
+    cmp [ebx + CircleWithCenter.IsSelected], 0
+    je @F
 
-    invoke CreatePen, PS_SOLID, [ebx + CircleWithCenter.Width], [ebx + CircleWithCenter.Color]
-    mov [hPen], eax
-    invoke SelectObject, [hdc], eax
+    mov eax, [ebx + CircleWithCenter.Color]
+    mov edx, GeometryObject.SelectedLineShadowOpacity
+    call Draw.GetColorWithOpacity
+    fld dword [ebx + CircleWithCenter.Width]
+    fmul [GeometryObject.SelectedLineShadowWidthCoefficient]
+    fstp [SelectedWidth]
+    stdcall Draw.Circle, [DrawArea.pGdipGraphics], [CenterX], [CenterY], [Radius], [SelectedWidth], eax
 
-    stdcall Draw.Circle, [hdc], [CenterX], [CenterY], [Radius]
-
-    invoke GetStockObject, DC_PEN
-    invoke SelectObject, [hdc], eax
-    invoke DeleteObject, [hPen]
+    @@:
+    stdcall Draw.Circle, [DrawArea.pGdipGraphics], [CenterX], [CenterY], [Radius], [ebx + CircleWithCenter.Width], [ebx + CircleWithCenter.Color]
 
     ret
 endp
@@ -83,7 +86,7 @@ proc CircleWithCenter.IsOnPosition X, Y
     push [eax + Point.Y] [eax + Point.X]
 
     stdcall Math.Distance
-    fisub [ebx + CircleWithCenter.Width]
+    fsub [ebx + CircleWithCenter.Width]
 
     ; Calculate sqrt((x0 - X)^2 + (y0 - Y)^2)
     fild [CenterX]
@@ -101,7 +104,7 @@ proc CircleWithCenter.IsOnPosition X, Y
     ; The first value on the stack is r - w
     ; We add w*2 to it to get r + w and then
     ; compare it with distance
-    fild [ebx + CircleWithCenter.Width]
+    fld [ebx + CircleWithCenter.Width]
     fadd st2, st0
     faddp st2, st0
 

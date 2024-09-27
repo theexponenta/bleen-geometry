@@ -9,6 +9,3 @@ struct CircleWithCenter GeometryObject
 ends
 
 
-CircleWithCenter.DefaultWidth = 3
-CircleWithCenter.DefaultColor = 0x616161
-

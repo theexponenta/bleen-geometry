@@ -191,11 +191,11 @@ proc Line.Draw uses edi, hdc
     cmp [ebx + Line.IsSelected], 0
     je @F
 
-    mov eax, [ebx + Line.Color]
-    and eax, 0xFFFFFF
-    or eax, Line.SelectedShadowOpacity shl 24
+    mov eax, [ebx + Segment.Color]
+    mov edx, GeometryObject.SelectedLineShadowOpacity
+    call Draw.GetColorWithOpacity
     fld dword [ebx + Line.Width]
-    fmul [Line.SelectedShadowWidthCoefficient]
+    fmul [GeometryObject.SelectedLineShadowWidthCoefficient]
     fstp [SelectedWidth]
     stdcall Draw.Line, [DrawArea.pGdipGraphics], [P1Border.x], [P1Border.y], [P2Border.x], [P2Border.y], [SelectedWidth], eax
 

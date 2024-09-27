@@ -39,40 +39,25 @@ proc Point.Draw uses edi, hdc
 
     mov edi, [hdc]
 
-    invoke GetStockObject, DC_BRUSH
-    invoke SelectObject, edi, eax
-    invoke SelectObject, edi, [Point.BorderPen]
-
-    invoke SetDCBrushColor, edi, [ebx + Point.Color]
-
     ; Circle
     stdcall Main.ToScreenPosition, [ebx + Point.X], [ebx + Point.Y]
     mov [CenterX], edx
     mov [CenterY], eax
-    mov eax, [ebx + Point.Size]
-    stdcall Draw.Circle, edi, [CenterX], [CenterY], eax
+    stdcall Draw.FillCircle, [DrawArea.pGdipGraphics], [CenterX], [CenterY], [ebx + Point.Size], [ebx + Point.Color]
 
-    cmp [ebx + Point.IsSelected], 1
-    jne @F
+    cmp [ebx + Point.IsSelected], 0
+    je @F
 
     ; Circle for selected point
-    invoke GetStockObject, NULL_BRUSH
-    invoke SelectObject, edi, eax
-
-    invoke CreatePen, PS_SOLID, Point.SelectedBorderSize, [ebx + Point.Color]
-    mov [Point.SelectedBorderPen], eax
-    invoke SelectObject, edi, eax
-
     mov eax, [ebx + Point.Size]
     shl eax, 1
-    stdcall Draw.Circle, edi, [CenterX], [CenterY], eax
-
-    invoke GetStockObject, DC_PEN
-    invoke DeleteObject, [Point.SelectedBorderPen]
+    stdcall Draw.Circle, [DrawArea.pGdipGraphics], [CenterX], [CenterY], eax, Point.SelectedBorderSize, [ebx + Point.Color]
 
     @@:
     ; Name
-    invoke SetTextColor, edi, [ebx + Point.Color]
+    mov eax, 0xFFFFFFFF
+    sub eax, [ebx + Point.Color]
+    invoke SetTextColor, edi, eax
     mov eax, [CenterX]
     add eax, Point.NameTextOffset
     mov ecx, [CenterY]

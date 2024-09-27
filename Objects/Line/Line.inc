@@ -7,7 +7,3 @@ struct Line GeometryObject
     Width dd ?
     Color dd ?
 ends
-
-Line.DefaultColor = 0xFF616161
-Line.DefaultWidth equ 3.0
-Line.SelectedShadowOpacity = 60

@@ -44,16 +44,15 @@ proc Segment.Draw uses ebx edi, hdc
     jz @F
 
     mov eax, [ebx + Segment.Color]
-    and eax, 0xFFFFFF
-    or eax, Segment.SelectedShadowOpacity shl 24
-
+    mov edx, GeometryObject.SelectedLineShadowOpacity
+    call Draw.GetColorWithOpacity
     fld dword [ebx + Segment.Width]
-    fmul [Segment.SelectedShadowWidthCoefficient]
+    fmul [GeometryObject.SelectedLineShadowWidthCoefficient]
     fstp [SelectedWidth]
     stdcall Draw.Line, [DrawArea.pGdipGraphics], [X1], [Y1], [X2], [Y2], [SelectedWidth], eax
 
     @@:
-    stdcall Draw.Line, [DrawArea.pGdipGraphics], [X1], [Y1], [X2], [Y2], Segment.DefaultWidth, [ebx + Segment.Color]
+    stdcall Draw.Line, [DrawArea.pGdipGraphics], [X1], [Y1], [X2], [Y2], GeometryObject.DefaultLineWidth, [ebx + Segment.Color]
 
     .Return:
     ret
@@ -92,7 +91,6 @@ proc Segment.IsOnPosition uses edi, X, Y
     mov edx, [eax + Point.Y]
     mov [Y1], edx
 
-    ;mov eax, [edi + 4]
     mov eax, [ebx + Segment.Point2Id]
     call Main.FindPointById
     mov edx, [eax + Point.X]
@@ -132,56 +130,7 @@ proc Segment.IsOnPosition uses edi, X, Y
         test eax, eax
         jz .Return
 
-    ; Let (x1, y1) and (x2, y2) be points of segment edges
-    ; Let (x_d, y_d) be a direction vector of the segment line (x_d = x2 - x1, y_d = y2 - y1)
-    ; (X, Y) is the point to check
-    ; Let (x_m, y_m) be a vector from (X, Y) to (x1, y1) (x_m = x1 - X, y_m = y1 - Y)
-    ;
-    ;
-    ; To determine if the segment is on given position,
-    ; we need to calculate distance between point and the line of the segment,
-    ; then compare it with width of the segment, and finally determine if
-    ; x-coordinate of the given point lies between x1 and x2
-    ;
-    ;
-    ; So, distance between the line and the point is calculated as
-    ; D = abs(x_d * y_m - y_d * x_m) / sqrt(x_d^2 + y_d^2)
-
-    ; Calculate direction vector of line (x_d, y_d)
-    ;fild [X2]
-    ;fisub [X1]
-    ;fild [Y2]
-    ;fisub [Y1]
-
-    ; Caclculate (x_m, y_m)
-    ;fild [X1]
-    ;fisub [X]
-    ;fild [Y1]
-    ;fisub [Y]
-
-    ; Caclucalte x_d * y_m
-    ;fld st0 ; y_m
-    ;fmul st0, st4 ; * x_d
-
-    ; Calculate y_d * x_m
-    ;fld st2 ; x_m
-    ;fmul st0, st4 ; * y_d
-
-    ; Caclucalte abs(x_d * y_m - y_d * x_m)
-    ;fsubp
-    ;fabs
-
-    ; Caclucalte sqrt(x_d^2 + y_d^2)
-    ;fld st4
-    ;fmul st0, st0
-    ;fld st4
-    ;fmul st0, st0
-    ;faddp
-    ;fsqrt
-
     ; Resutlting distance
-    ;fdivp
-
     stdcall Math.DistanceLinePoint, [X1] ,[Y1], [X2], [Y2], [X], [Y]
     fld [ebx + Segment.Width]
     fcomip st0, st1

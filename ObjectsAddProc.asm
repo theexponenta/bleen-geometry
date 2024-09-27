@@ -44,7 +44,7 @@ proc Main.AddSegment uses ebx, Point1Id, Point2Id
     local NewSegment Segment ?
 
     lea ebx, [NewSegment]
-    stdcall Segment.Create, [NextObjectId], 0, 0, [Point1Id], [Point2Id], Segment.DefaultWidth, Segment.DefaultColor
+    stdcall Segment.Create, [NextObjectId], 0, 0, [Point1Id], [Point2Id], GeometryObject.DefaultLineWidth, GeometryObject.DefaultLineColor
     stdcall Main.AddObject, ebx, sizeof.Segment
 
     ret
@@ -55,7 +55,7 @@ proc Main.AddLine uses ebx, Point1Id, Point2Id
     local NewLine Segment ?
 
     lea ebx, [NewLine]
-    stdcall Line.Create, [NextObjectId], 0, 0, [Point1Id], [Point2Id], Line.DefaultWidth, Segment.DefaultColor
+    stdcall Line.Create, [NextObjectId], 0, 0, [Point1Id], [Point2Id], GeometryObject.DefaultLineWidth, GeometryObject.DefaultLineColor
     stdcall Main.AddObject, ebx, sizeof.Line
 
     ret
@@ -66,7 +66,7 @@ proc Main.AddCircleWithCenter uses ebx, CenterPointId, SecondPointId
     local NewCircle CircleWithCenter ?
 
     lea ebx, [NewCircle]
-    stdcall CircleWithCenter.Create, [NextObjectId], 0, 0, [CenterPointId], [SecondPointId], CircleWithCenter.DefaultWidth, CircleWithCenter.DefaultColor
+    stdcall CircleWithCenter.Create, [NextObjectId], 0, 0, [CenterPointId], [SecondPointId], GeometryObject.DefaultLineWidth, GeometryObject.DefaultLineColor
     stdcall Main.AddObject, ebx, sizeof.CircleWithCenter
 
     ret

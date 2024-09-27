@@ -1,6 +1,7 @@
 include 'Point/Point.d'
 include 'Segment/Segment.d'
 include 'Line/Line.d'
+include 'GeometryObject.d'
 
 
 Objects.DrawProcedures dd Point.Draw, Segment.Draw, CircleWithCenter.Draw, Line.Draw

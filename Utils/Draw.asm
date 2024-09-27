@@ -1,20 +1,49 @@
 
-proc Draw.Circle, hdc, X, Y, Radius
-    mov eax, [X]
-    mov edx, [Y]
-    mov ecx, [Radius]
+proc Draw.Circle pGdipGraphics, X, Y, Radius, Width, Color
+    locals
+        GpPen dd ?
+    endl
 
-    add edx, ecx ; Lower-right Y
-    add eax, ecx ; Lower-right X
-    push edx eax
-    shl ecx, 1
-    sub edx, ecx ; Upper-left Y
-    sub eax, ecx ; Upper-left X
-    push edx eax [hdc]
-    invoke Ellipse
+    lea eax, [GpPen]
+    invoke GdipCreatePen1, [Color], [Width], NULL, eax
+
+    mov eax, [X]
+    mov ecx, [Y]
+    mov edx, [Radius]
+
+    sub ecx, edx ; Upper-left Y
+    sub eax, edx ; Upper-left X
+    shl edx, 1
+
+    invoke GdipDrawEllipseI, [pGdipGraphics], [GpPen], eax, ecx, edx, edx
+    invoke GdipDeletePen, [GpPen]
 
     ret
 endp
+
+
+proc Draw.FillCircle pGdipGraphics, X, Y, Radius, Color
+    locals
+        GpBrush dd ?
+    endl
+
+    lea eax, [GpBrush]
+    invoke GdipCreateSolidFill, [Color], eax
+
+    mov eax, [X]
+    mov ecx, [Y]
+    mov edx, [Radius]
+
+    sub ecx, edx ; Upper-left Y
+    sub eax, edx ; Upper-left X
+    shl edx, 1
+
+    invoke GdipFillEllipseI, [pGdipGraphics], [GpBrush], eax, ecx, edx, edx
+    invoke GdipDeleteBrush, [GpBrush]
+
+    ret
+endp
+
 
 
 proc Draw.Line uses ebx, pGdipGraphics, X1, Y1, X2, Y2, Width, Color
@@ -24,18 +53,19 @@ proc Draw.Line uses ebx, pGdipGraphics, X1, Y1, X2, Y2, Width, Color
 
     lea eax, [GpPen]
     invoke GdipCreatePen1, [Color], [Width], NULL, eax
-    mov ebx, eax
-    ;invoke SelectObject, [hdc], eax
-
     invoke GdipDrawLineI, [pGdipGraphics], [GpPen], [X1], [Y1], [X2], [Y2]
-    ;invoke MoveToEx, [hdc], [X1], [Y1], NULL
-    ;invoke LineTo, [hdc], [X2], [Y2]
-
     invoke GdipDeletePen, [GpPen]
 
-    ;invoke GetStockObject, DC_PEN
-    ;invoke SelectObject, [hdc], eax
-    ;invoke DeleteObject, ebx
-
     ret
+endp
+
+
+; eax - Color
+; edx - Opacity
+proc Draw.GetColorWithOpacity
+    and eax, 0xFFFFFF
+    shl edx, 24
+    or eax, edx
+
+   ret
 endp
