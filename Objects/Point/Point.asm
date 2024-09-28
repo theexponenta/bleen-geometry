@@ -28,6 +28,8 @@ proc Point.Draw uses edi, hdc
     locals
         CenterX dd ?
         CenterY dd ?
+        DoubleSize dd ?
+        Two dq 2f
     endl
 
     ; Uninitialized points have Id = 0
@@ -49,17 +51,23 @@ proc Point.Draw uses edi, hdc
     je @F
 
     ; Circle for selected point
-    mov eax, [ebx + Point.Size]
-    shl eax, 1
-    stdcall Draw.Circle, [DrawArea.pGdipGraphics], [CenterX], [CenterY], eax, Point.SelectedBorderSize, [ebx + Point.Color]
+    fld [ebx + Point.Size]
+    fmul [Two]
+    fstp [DoubleSize]
+    stdcall Draw.Circle, [DrawArea.pGdipGraphics], [CenterX], [CenterY], [DoubleSize], Point.SelectedBorderSize, [ebx + Point.Color]
 
     @@:
     ; Name
     mov eax, 0xFFFFFFFF
     sub eax, [ebx + Point.Color]
     invoke SetTextColor, edi, eax
+
+    fld [CenterX]
+    fistp [CenterX]
     mov eax, [CenterX]
     add eax, Point.NameTextOffset
+    fld [CenterY]
+    fistp [CenterY]
     mov ecx, [CenterY]
     sub ecx, Point.NameTextOffset
 
@@ -127,35 +135,40 @@ proc Point.PointNumToName uses ebx
 endp
 
 
-; edx - X
-; ecx - Y
+; edx - dX
+; ecx - dY
 proc Point.Move
-    mov eax, [ebx + Point.X]
-    add eax, edx
-    mov [ebx + Point.X], eax
+    locals
+        delta dd ?
+    endl
 
-    mov eax, [ebx + Point.Y]
-    add eax, ecx
-    mov [ebx + Point.Y], eax
+    mov [delta], edx
+    fld [delta]
+    fadd [ebx + Point.X]
+    fstp [ebx + Point.X]
+    mov [delta], ecx
+    fld [delta]
+    fadd [ebx + Point.Y]
+    fstp [ebx + Point.Y]
 
     ret
 endp
 
 
 proc Point.IsOnPosition X, Y
-    fild [X]
-    fild [Y]
+    fld [X]
+    fld [Y]
 
-    fild [ebx + Point.X]
+    fld [ebx + Point.X]
     fsub st0, st2
     fmul st0, st0
-    fild [ebx + Point.Y]
+    fld [ebx + Point.Y]
     fsub st0, st2
     fmul st0, st0
     faddp
     fsqrt
 
-    fild [ebx + Point.Size]
+    fld [ebx + Point.Size]
     fcomip st, st1
     fstp st0
     jae .ReturnTrue

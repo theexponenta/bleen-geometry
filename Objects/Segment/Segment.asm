@@ -99,15 +99,15 @@ proc Segment.IsOnPosition uses edi, X, Y
     mov [Y2], edx
 
     ; Caclulate min(X1, X2) and max(X1, X2)
-    fild [X1]
-    fild [X2]
+    fld [X1]
+    fld [X2]
     fld st0
     fld st2
     stdcall Math.FPUMin
     fxch st2
     stdcall Math.FPUMax
 
-    fild [X]
+    fld [X]
 
     mov eax, 1
 
@@ -133,6 +133,7 @@ proc Segment.IsOnPosition uses edi, X, Y
     ; Resutlting distance
     stdcall Math.DistanceLinePoint, [X1] ,[Y1], [X2], [Y2], [X], [Y]
     fld [ebx + Segment.Width]
+    fdiv [Scale]
     fcomip st0, st1
     fstp st0
     mov eax, 1

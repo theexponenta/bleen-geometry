@@ -71,9 +71,13 @@ proc DrawArea.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
          mov eax, [wmsg]
          mov [TransitionMessage], eax
 
-         movzx edx, word [lparam]
-         mov [CurrentMouseScreenPoint.X], edx
+         movzx eax, word [lparam]
+         call Math.IntToFloat
+         mov [CurrentMouseScreenPoint.X], eax
+         mov edx, eax
+
          movzx eax, word [lparam + 2]
+         call Math.IntToFloat
          mov [CurrentMouseScreenPoint.Y], eax
 
          stdcall Main.ToPlanePosition, edx, eax

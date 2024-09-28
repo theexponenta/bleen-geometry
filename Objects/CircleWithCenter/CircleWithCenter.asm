@@ -40,7 +40,7 @@ proc CircleWithCenter.Draw hdc
     stdcall Main.ToScreenPosition, [eax + Point.X], [eax + Point.Y]
     push eax edx
     stdcall Math.Distance
-    fistp [Radius]
+    fstp [Radius]
 
     cmp [ebx + CircleWithCenter.IsSelected], 0
     je @F
@@ -64,6 +64,7 @@ proc CircleWithCenter.IsOnPosition X, Y
     locals
         CenterX dd ?
         CenterY dd ?
+        WidthScaled dd ?
     endl
 
     ; Let x0, y0 be coordinates of circle center,
@@ -72,6 +73,10 @@ proc CircleWithCenter.IsOnPosition X, Y
     ;
     ; Circle is on positiob (X, Y) if:
     ; r - w <= sqrt((x0 - X)^2 + (y0 - Y)^2) <= r + w
+
+    fld [ebx + CircleWithCenter.Width]
+    fdiv [Scale]
+    fstp [WidthScaled]
 
     mov eax, [ebx + CircleWithCenter.CenterPointId]
     stdcall Main.FindPointById
@@ -86,14 +91,14 @@ proc CircleWithCenter.IsOnPosition X, Y
     push [eax + Point.Y] [eax + Point.X]
 
     stdcall Math.Distance
-    fsub [ebx + CircleWithCenter.Width]
+    fsub [WidthScaled]
 
     ; Calculate sqrt((x0 - X)^2 + (y0 - Y)^2)
-    fild [CenterX]
-    fisub [X]
+    fld [CenterX]
+    fsub [X]
     fmul st0, st0
-    fild [CenterY]
-    fisub [Y]
+    fld [CenterY]
+    fsub [Y]
     fmul st0, st0
     faddp
     fsqrt
@@ -104,7 +109,7 @@ proc CircleWithCenter.IsOnPosition X, Y
     ; The first value on the stack is r - w
     ; We add w*2 to it to get r + w and then
     ; compare it with distance
-    fld [ebx + CircleWithCenter.Width]
+    fld [WidthScaled]
     fadd st2, st0
     faddp st2, st0
 

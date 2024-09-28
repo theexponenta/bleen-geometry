@@ -123,19 +123,19 @@ proc Line.Draw uses edi, hdc
 
     @@:
     ; X2*Y1 - X1*Y2
-    fild [P2.x]
-    fimul [P1.y]
-    fild [P1.x]
-    fimul [P2.y]
+    fld [P2.x]
+    fmul [P1.y]
+    fld [P1.x]
+    fmul [P2.y]
     fsubp
 
     ; X2 - X1
-    fild [P2.x]
-    fisub [P1.x]
+    fld [P2.x]
+    fsub [P1.x]
 
     ; Y1 - Y2
-    fild [P1.y]
-    fisub [P2.y]
+    fld [P1.y]
+    fsub [P2.y]
 
     lea edi, [P1Border]
 
@@ -144,8 +144,8 @@ proc Line.Draw uses edi, hdc
     test eax, eax
     jz @F
 
-    mov [edi + POINT.x], 0
-    fist [edi + POINT.y]
+    mov [edi + POINT.x], 0f
+    fst [edi + POINT.y]
     add edi, sizeof.POINT
 
     @@:
@@ -156,8 +156,9 @@ proc Line.Draw uses edi, hdc
     jz @F
 
     mov eax, [DrawArea.Width]
+    call Math.IntToFloat
     mov [edi + POINT.x], eax
-    fist [edi + POINT.y]
+    fst [edi + POINT.y]
     add edi, sizeof.POINT
 
     @@:
@@ -167,8 +168,8 @@ proc Line.Draw uses edi, hdc
     test eax, eax
     jz @F
 
-    fist [edi + POINT.x]
-    mov [edi + POINT.y], 0
+    fst [edi + POINT.x]
+    mov [edi + POINT.y], 0f
     add edi, sizeof.POINT
 
     @@:
@@ -178,8 +179,9 @@ proc Line.Draw uses edi, hdc
     test eax, eax
     jz @F
 
-    fist [edi + POINT.x]
+    fst [edi + POINT.x]
     mov eax, [DrawArea.Height]
+    call Math.IntToFloat
     mov [edi + POINT.y], eax
 
     @@:
@@ -223,6 +225,7 @@ proc Line.IsOnPosition X, Y
     stdcall Math.DistanceLinePoint
 
     fld [ebx + Line.Width]
+    fdiv [Scale]
     fcomip st0, st1
     fstp st0
     mov eax, 1

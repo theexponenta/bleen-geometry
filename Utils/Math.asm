@@ -20,11 +20,11 @@ endp
 
 ; st0 - result
 proc Math.Distance X1, Y1, X2, Y2
-    fild [X1]
-    fisub [X2]
+    fld [X1]
+    fsub [X2]
     fmul st0, st0
-    fild [Y1]
-    fisub [Y2]
+    fld [Y1]
+    fsub [Y2]
     fmul st0, st0
     faddp
     fsqrt
@@ -61,6 +61,21 @@ proc Math.FPUMin
 endp
 
 
+; eax - integer number
+proc Math.IntToFloat
+   locals
+       FloatValue dd ?
+   endl
+
+   mov [FloatValue], eax
+   fild [FloatValue]
+   fstp [FloatValue]
+   mov eax, [FloatValue]
+
+   ret
+endp
+
+
 ; eax - number
 ; Returns 1 if number > 0, -1 if number < 0, 0 if number is 0
 proc Math.Sign
@@ -88,16 +103,16 @@ proc Math.DistanceLinePoint X1, Y1, X2, Y2, X, Y
     ; D = abs(x_d * y_m - y_d * x_m) / sqrt(x_d^2 + y_d^2)
 
     ; Calculate direction vector of line (x_d, y_d)
-    fild [X2]
-    fisub [X1]
-    fild [Y2]
-    fisub [Y1]
+    fld [X2]
+    fsub [X1]
+    fld [Y2]
+    fsub [Y1]
 
     ; Caclculate (x_m, y_m)
-    fild [X1]
-    fisub [X]
-    fild [Y1]
-    fisub [Y]
+    fld [X1]
+    fsub [X]
+    fld [Y1]
+    fsub [Y]
 
     ; Caclucalte x_d * y_m
     fld st3 ; x_d

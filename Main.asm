@@ -190,18 +190,18 @@ endp
 ; Returns result in edx:eax, where edx - x-coordinate on screen, eax - y-coordinate on screen
 proc Main.ToScreenPosition, X, Y
     fld [Scale]
-    fild [X]
-    fild [Y]
+    fld [X]
+    fld [Y]
     fmul st0, st2
-    fistp [Y]
+    fadd [Translate.y]
+    fstp [Y]
     fmul st0, st1
-    fistp [X]
+    fadd [Translate.x]
+    fstp [X]
     fstp st0
 
     mov edx, [X]
     mov eax, [Y]
-    add edx, [Translate.x]
-    add eax, [Translate.y]
 
     ret
 endp
@@ -210,20 +210,15 @@ endp
 ; Translates screen position to plane position
 ; Returns result in edx:eax, where edx - x-coordinate on plane, eax - y-coordinate on plane
 proc Main.ToPlanePosition, X, Y
-    mov edx, [X]
-    mov eax, [Y]
-    sub edx, [Translate.x]
-    sub eax, [Translate.y]
-    mov [X], edx
-    mov [Y], eax
-
     fld [Scale]
-    fild [X]
-    fild [Y]
+    fld [X]
+    fsub [Translate.x]
+    fld [Y]
+    fsub [Translate.y]
     fdiv st0, st2
-    fistp [Y]
+    fstp [Y]
     fdiv st0, st1
-    fistp [X]
+    fstp [X]
     fstp st0
 
     mov edx, [X]
@@ -250,20 +245,21 @@ proc Main.FindPointOnPosition uses esi, X, Y
     mov [X], edx
     mov [Y], eax
 
-    fild [X]
-    fild [Y]
+    fld [X]
+    fld [Y]
 
     .FindLoop:
-        fild [esi + Point.X]
+        fld [esi + Point.X]
         fsub st0, st2
         fmul st0, st0
-        fild [esi + Point.Y]
+        fld [esi + Point.Y]
         fsub st0, st2
         fmul st0, st0
         faddp
         fsqrt
 
-        fild [esi + Point.Size]
+        fld [esi + Point.Size]
+        fdiv [Scale]
         fcomip st, st1
         fstp st0
         jae .ReturnFound
@@ -384,22 +380,22 @@ proc Main.Scale, X, Y, Direction
 
     @@:
     fild [X]
-    fisub [Translate.x]
+    fsub [Translate.x]
     fld1
     fld st2
     fsubp
     fmulp
-    fiadd [Translate.x]
-    fistp [Translate.x]
+    fadd [Translate.x]
+    fstp [Translate.x]
 
     fild [Y]
-    fisub [Translate.y]
+    fsub [Translate.y]
     fld1
     fld st2
     fsubp
     fmulp
-    fiadd [Translate.y]
-    fistp [Translate.y]
+    fadd [Translate.y]
+    fstp [Translate.y]
 
     fld [Scale]
     fmulp st1, st0
@@ -453,10 +449,10 @@ section '.data' data readable writeable
   CurrentToolId dd 1
   CurrentStateId dd 1
 
-  CurrentMouseScreenPoint Point 0, OBJ_POINT, 0, 0, 0, 0, 0, 0
-  CurrentMousePlanePoint Point 0, OBJ_POINT, 0, 0, 0, 0, 0, 0
+  CurrentMouseScreenPoint Point 0, OBJ_POINT, 0, 0, 0, 0, 0f, 0f
+  CurrentMousePlanePoint Point 0, OBJ_POINT, 0, 0, 0, 0, 0f, 0f
 
-  Translate POINT 0, 0
+  Translate POINT 0f, 0f
   Scale dq 1.0
   ScaleStepCoefficient dq 1.1
 
@@ -477,11 +473,14 @@ section '.idata' import data readable writeable
          GdiplusStartup, 'GdiplusStartup', \
          GdiplusShutdown, 'GdiplusShutdown', \
          GdipDrawLineI, 'GdipDrawLineI', \
+         GdipDrawLine, 'GdipDrawLine', \
          GdipCreatePen1, 'GdipCreatePen1', \
          GdipCreateFromHDC, 'GdipCreateFromHDC', \
          GdipDeletePen, 'GdipDeletePen', \
          GdipDrawEllipseI, 'GdipDrawEllipseI', \
          GdipFillEllipseI, 'GdipFillEllipseI', \
+         GdipDrawEllipse, 'GdipDrawEllipse', \
+         GdipFillEllipse, 'GdipFillEllipse', \
          GdipCreateSolidFill, 'GdipCreateSolidFill', \
          GdipDeleteBrush, 'GdipDeleteBrush'
 

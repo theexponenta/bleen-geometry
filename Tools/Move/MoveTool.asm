@@ -34,18 +34,15 @@ endp
 
 
 proc MoveTool.TranslateCanvas
-    locals
-        deltaX dd ?
-        deltaY dd ?
-    endl
+    fld [CurrentMouseScreenPoint.X]
+    fsub [MoveTool.PrevPoint.x]
+    fadd [Translate.x]
+    fstp [Translate.x]
 
-    mov edx, [CurrentMouseScreenPoint.X]
-    sub edx, [MoveTool.PrevPoint.x]
-    mov ecx, [CurrentMouseScreenPoint.Y]
-    sub ecx, [MoveTool.PrevPoint.y]
-
-    add [Translate.x], edx
-    add [Translate.y], ecx
+    fld [CurrentMouseScreenPoint.Y]
+    fsub [MoveTool.PrevPoint.y]
+    fadd [Translate.y]
+    fstp [Translate.y]
 
     mov eax, [CurrentMouseScreenPoint.X]
     mov [MoveTool.PrevPoint.x], eax
@@ -66,25 +63,19 @@ proc MoveTool.MoveObject uses ebx
     test ebx, ebx
     jz .Return
 
-    mov edx, [CurrentMouseScreenPoint.X]
-    sub edx, [MoveTool.PrevPoint.x]
-    mov ecx, [CurrentMouseScreenPoint.Y]
-    sub ecx, [MoveTool.PrevPoint.y]
-
-    mov [deltaX], edx
-    mov [deltaY], ecx
-    fild [deltaX]
-    fild [deltaY]
+    fld [CurrentMouseScreenPoint.X]
+    fsub [MoveTool.PrevPoint.x]
+    fld [CurrentMouseScreenPoint.Y]
+    fsub [MoveTool.PrevPoint.y]
     fld [Scale]
     fdiv st1, st0
     fdiv st2, st0
     fstp st0
-    fistp [deltaY]
-    fistp [deltaX]
+    fstp [deltaY]
+    fstp [deltaX]
 
     mov edx, [deltaX]
     mov ecx, [deltaY]
-
     stdcall GeometryObject.Move
 
     mov eax, [CurrentMouseScreenPoint.X]
