@@ -6,7 +6,8 @@ MoveTool.States.TranslateCanvas = 3
 MoveTool.pSelectedObject dd ?
 MoveTool.PrevPoint POINT 0f, 0f
 
-MoveTool.States.SelectObject.Transitions dd WM_LBUTTONDOWN, MoveTool.SelectObject, 0
+MoveTool.States.SelectObject.Transitions dd WM_LBUTTONDOWN, MoveTool.SelectObject, \
+                                            VK_DELETE, MoveTool.DeleteSelectedObjects, 0
 
 MoveTool.States.MoveObject.Transitions dd WM_MOUSEMOVE, MoveTool.MoveObject, \
                                           WM_LBUTTONUP, MoveTool.SetSelectObject, 0

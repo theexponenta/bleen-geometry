@@ -69,3 +69,51 @@ proc GeometryObject.Move uses ebx edi esi
     .Return:
     ret
 endp
+
+
+proc GeometryObject.IsDependableObjectType, Type
+    mov eax, [Type]
+    cmp eax, OBJ_POINT
+    je .ReturnTrue
+
+    xor eax, eax
+    jmp .Return
+
+    .ReturnTrue:
+    mov eax, 1
+
+    .Return:
+    ret
+endp
+
+
+proc GeometryObject.DependsOnObject, Id
+    mov edx, Objects.DependencyObjectsIdsOffsets
+    movzx eax, byte [ebx + GeometryObject.Type]
+    dec eax
+    shl eax, 2
+
+    mov edx, [edx + eax]
+    mov ecx, [edx]
+    test ecx, ecx
+    jz .ReturnFalse
+
+    add edx, 4
+    .CheckDependencyLoop:
+        mov eax, [edx]
+        mov eax, [ebx + eax]
+        cmp eax, [Id]
+        je .ReturnTrue
+        add edx, 4
+        loop .CheckDependencyLoop
+
+    .ReturnFalse:
+    xor eax, eax
+    jmp .Return
+
+    .ReturnTrue:
+    mov eax, 1
+
+    .Return:
+    ret
+endp

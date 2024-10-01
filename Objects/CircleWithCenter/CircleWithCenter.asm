@@ -23,7 +23,9 @@ proc CircleWithCenter.Draw hdc
         Radius dd ?
         CenterX dd ?
         CenterY dd ?
-        hPen dd ?
+
+        hPenMain dd ?
+        hPenSelected dd 0
 
         SelectedWidth dd ?
     endl
@@ -40,22 +42,42 @@ proc CircleWithCenter.Draw hdc
     stdcall Main.ToScreenPosition, [eax + Point.X], [eax + Point.Y]
     push eax edx
     stdcall Math.Distance
-    fstp [Radius]
+    fistp [Radius]
 
-    cmp [ebx + CircleWithCenter.IsSelected], 0
-    je @F
+    invoke GetStockObject, NULL_BRUSH
+    invoke SelectObject, [hdc], eax
 
-    mov eax, [ebx + CircleWithCenter.Color]
-    mov edx, GeometryObject.SelectedLineShadowOpacity
-    call Draw.GetColorWithOpacity
-    fld dword [ebx + CircleWithCenter.Width]
+    cmp [ebx + Segment.IsSelected], 0
+    jz @F
+
+
+    fild [ebx + Segment.Width]
     fmul [GeometryObject.SelectedLineShadowWidthCoefficient]
-    fstp [SelectedWidth]
-    stdcall Draw.Circle, [DrawArea.pGdipGraphics], [CenterX], [CenterY], [Radius], [SelectedWidth], eax
+    fistp [SelectedWidth]
+    invoke CreatePen, PS_SOLID, [SelectedWidth], GeometryObject.SelectedLineColor
+    mov [hPenSelected], eax
+    invoke SelectObject, [hdc], eax
+
+    stdcall Draw.Circle, [hdc], [CenterX], [CenterY], [Radius]
+
 
     @@:
-    stdcall Draw.Circle, [DrawArea.pGdipGraphics], [CenterX], [CenterY], [Radius], [ebx + CircleWithCenter.Width], [ebx + CircleWithCenter.Color]
+    invoke CreatePen, PS_SOLID, [ebx + CircleWithCenter.Width], [ebx + CircleWithCenter.Color]
+    mov [hPenMain], eax
+    invoke SelectObject, [hdc], eax
 
+    stdcall Draw.Circle, [hdc], [CenterX], [CenterY], [Radius]
+
+    invoke GetStockObject, DC_PEN
+    invoke SelectObject, [hdc], eax
+
+    invoke DeleteObject, [hPenMain]
+    cmp [hPenSelected], 0
+    je .Return
+
+    invoke DeleteObject, [hPenSelected]
+
+    .Return:
     ret
 endp
 
@@ -74,7 +96,7 @@ proc CircleWithCenter.IsOnPosition X, Y
     ; Circle is on positiob (X, Y) if:
     ; r - w <= sqrt((x0 - X)^2 + (y0 - Y)^2) <= r + w
 
-    fld [ebx + CircleWithCenter.Width]
+    fild [ebx + CircleWithCenter.Width]
     fdiv [Scale]
     fstp [WidthScaled]
 

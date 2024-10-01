@@ -1,0 +1,1 @@
+CircleWithCenter.DependencyObjectsIdsOffsets dd 2, CircleWithCenter.CenterPointId, CircleWithCenter.SecondPointId

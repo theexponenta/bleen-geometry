@@ -10,7 +10,7 @@ struct GeometryObject
 ends
 
 
-GeometryObject.DefaultLineWidth equ 3f
-GeometryObject.DefaultLineColor = 0xFF616161
-GeometryObject.SelectedLineShadowOpacity = 60
+GeometryObject.DefaultLineWidth = 3
+GeometryObject.DefaultLineColor = 0x00616161
+GeometryObject.SelectedLineColor = 0x00DFDFDF
 GeometryObject.AttachedPointsIds.DefaultCapacity = 2

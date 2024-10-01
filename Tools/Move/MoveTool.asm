@@ -87,3 +87,25 @@ proc MoveTool.MoveObject uses ebx
     ret
 endp
 
+
+proc MoveTool.DeleteSelectedObjects uses ebx edi esi
+    mov ecx, [SelectedObjects.Length]
+    test ecx, ecx
+    jz .Return
+
+    mov edi, [SelectedObjects.ElementSize]
+    mov esi, [SelectedObjects.Ptr]
+    .DeleteLoop:
+        push ecx
+        mov eax, [esi]
+        stdcall Main.DeleteObjectById, [eax + GeometryObject.Id]
+        pop ecx
+        add esi, edi
+        loop .DeleteLoop
+
+    stdcall Main.UnselectObjects
+
+    .Return:
+    ret
+endp
+

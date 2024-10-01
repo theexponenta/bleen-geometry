@@ -43,16 +43,13 @@ proc Segment.Draw uses ebx edi, hdc
     cmp [ebx + Segment.IsSelected], 0
     jz @F
 
-    mov eax, [ebx + Segment.Color]
-    mov edx, GeometryObject.SelectedLineShadowOpacity
-    call Draw.GetColorWithOpacity
-    fld dword [ebx + Segment.Width]
+    fild [ebx + Segment.Width]
     fmul [GeometryObject.SelectedLineShadowWidthCoefficient]
-    fstp [SelectedWidth]
-    stdcall Draw.Line, [DrawArea.pGdipGraphics], [X1], [Y1], [X2], [Y2], [SelectedWidth], eax
+    fistp [SelectedWidth]
+    stdcall Draw.Line, [hdc], [X1], [Y1], [X2], [Y2], [SelectedWidth], GeometryObject.SelectedLineColor
 
     @@:
-    stdcall Draw.Line, [DrawArea.pGdipGraphics], [X1], [Y1], [X2], [Y2], GeometryObject.DefaultLineWidth, [ebx + Segment.Color]
+    stdcall Draw.Line, [hdc], [X1], [Y1], [X2], [Y2], GeometryObject.DefaultLineWidth, [ebx + Segment.Color]
 
     .Return:
     ret
@@ -132,7 +129,7 @@ proc Segment.IsOnPosition uses edi, X, Y
 
     ; Resutlting distance
     stdcall Math.DistanceLinePoint, [X1] ,[Y1], [X2], [Y2], [X], [Y]
-    fld [ebx + Segment.Width]
+    fild [ebx + Segment.Width]
     fdiv [Scale]
     fcomip st0, st1
     fstp st0

@@ -6,6 +6,8 @@ proc HeterogenousVector.Create uses ebx, Capacity
     invoke HeapAlloc, [hProcessHeap], HEAP_ZERO_MEMORY, eax
     mov [ebx + HeterogenousVector.Ptr], eax
 
+    mov [ebx + HeterogenousVector.TotalSize], 0
+
     add ebx, HeterogenousVector.Sizes
     stdcall Vector.Create, HeterogenousVector.BytesForElementSize, 0, HeterogenousVector.IntitialElementsCapacity
 
@@ -39,12 +41,11 @@ proc HeterogenousVector.Push uses ebx edi, pElem, Size
 
     dec ecx
     .CountOffsetLoop:
-        movzx edi, word[eax + ecx*HeterogenousVector.BytesForElementSize]
+        mov edi, [eax + ecx*HeterogenousVector.BytesForElementSize]
         add edx, edi
 
         dec ecx
-        js .CheckCapacity
-        jmp .CountOffsetLoop
+        jns .CountOffsetLoop
 
     .CheckCapacity:
     mov ecx, edx
@@ -61,6 +62,8 @@ proc HeterogenousVector.Push uses ebx edi, pElem, Size
     add eax, edx
     push eax
     invoke RtlMoveMemory, eax, [pElem], [Size]
+    mov eax, [Size]
+    add [ebx + HeterogenousVector.TotalSize], eax
 
     add ebx, HeterogenousVector.Sizes
     lea eax, [Size]
@@ -72,8 +75,63 @@ endp
 
 
 proc HeterogenousVector.Pop uses ebx
+    mov ecx, [ebx + HeterogenousVector.Sizes.Length]
+    dec ecx
+    mov eax, [ebx + HeterogenousVector.Sizes.Ptr]
+    mov eax, [eax + ecx*HeterogenousVector.BytesForElementSize]
+    sub [ebx + HeterogenousVector.TotalSize], eax
+
     add ebx, HeterogenousVector.Sizes
     stdcall Vector.Pop
 
     ret
 endp
+
+
+proc HeterogenousVector.DeleteByIndex uses edi, Index
+    mov ecx, [Index]
+    mov eax, ecx
+    inc eax
+    cmp eax, [ebx + HeterogenousVector.Sizes.Length]
+    jne .BeforeCountOffsetLoop
+
+    call HeterogenousVector.Pop
+    jmp .Return
+
+    .BeforeCountOffsetLoop:
+    xor eax, eax
+    mov edx, [ebx + HeterogenousVector.Sizes.Ptr]
+
+    test ecx, ecx
+    jz .AfterCountOffsetLoop
+
+    .CountOffsetLoop:
+        add eax, dword [edx]
+        add edx, 4
+        loop .CountOffsetLoop
+
+    .AfterCountOffsetLoop:
+        mov edi, dword [edx]
+        mov ecx, [ebx + HeterogenousVector.TotalSize]
+        sub ecx, eax
+        sub ecx, edi
+        push ecx ; Length
+
+        mov edx, [ebx + HeterogenousVector.Ptr]
+        add edx, eax
+        mov ecx, edx
+        add ecx, edi
+        push ecx ; *Source
+        push edx ; *Destination
+
+        invoke RtlMoveMemory ; All the arguments are pushed above
+
+        sub [ebx + HeterogenousVector.TotalSize], edi
+        add ebx, HeterogenousVector.Sizes
+        stdcall Vector.DeleteByIndex, [Index]
+        sub ebx, HeterogenousVector.Sizes
+
+    .Return:
+    ret
+endp
+

@@ -28,8 +28,6 @@ proc WinMain
     mov ebx, Points
     stdcall Vector.Create, sizeof.Point, 0, 26
 
-    invoke GdiplusStartup, GdipToken, GdipStartupInput, NULL
-
     invoke CreateSolidBrush, 0xFFFFFF
     mov [hbrWhite], eax
     invoke CreatePen, PS_SOLID, 1, 0xFFFFFF
@@ -91,7 +89,6 @@ proc WinMain
         invoke MessageBox, NULL, Error, NULL, MB_ICONERROR + MB_OK
 
     .EndLoop:
-        invoke GdiplusShutdown, [GdipToken]
         invoke ExitProcess, [Msg.wParam]
 endp
 
@@ -186,6 +183,32 @@ proc Main.FindPointById uses esi
 endp
 
 
+; eax - Point id
+; Returns index of point in Points vector, -1 if not found
+proc Main.FindPointIndexById uses esi
+   mov esi, eax
+   mov ecx, [Points.Length]
+   test ecx, ecx
+   jz .ReturnNotFound
+
+   xor eax, eax
+   mov edx, [Points.Ptr]
+   .FindLoop:
+       cmp [edx + Point.Id], esi
+       je .Return
+
+       add edx, sizeof.Point
+       inc eax
+       loop .FindLoop
+
+    .ReturnNotFound:
+        mov eax, -1
+
+   .Return:
+   ret
+endp
+
+
 ; Translates plane position to screen poisition
 ; Returns result in edx:eax, where edx - x-coordinate on screen, eax - y-coordinate on screen
 proc Main.ToScreenPosition, X, Y
@@ -258,7 +281,7 @@ proc Main.FindPointOnPosition uses esi, X, Y
         faddp
         fsqrt
 
-        fld [esi + Point.Size]
+        fild [esi + Point.Size]
         fdiv [Scale]
         fcomip st, st1
         fstp st0
@@ -405,6 +428,119 @@ proc Main.Scale, X, Y, Direction
 endp
 
 
+; Get index of object in Objects vector
+;
+; eax -- index. -1 if not found
+; edx - pointer to object. Undefined if not found. Check eax!
+proc Main.GetObjectIndexById uses ebx edi, Id
+    mov ecx, [Objects.Sizes.Length]
+    test ecx, ecx
+    jz .ReturnNotFound
+
+    xor eax, eax
+    mov edi, [Id]
+    mov edx, [Objects.Sizes.Ptr]
+    mov ebx, [Objects.Ptr]
+    .FindLoop:
+        cmp edi, [ebx + GeometryObject.Id]
+        je .Return
+
+        add ebx, [edx]
+        add edx, 4
+        inc eax
+        loop .FindLoop
+
+    .ReturnNotFound:
+    mov eax, -1
+
+    .Return:
+    mov edx, ebx
+    ret
+endp
+
+
+proc Main._MarkDependentObjectsToDelete uses ebx, Id
+    mov ecx, [Objects.Sizes.Length]
+    mov ebx, [Objects.Ptr]
+    mov edx, [Objects.Sizes.Ptr]
+    .MarkObjectsToDeleteLoop:
+        push edx ecx
+        stdcall GeometryObject.DependsOnObject, [Id]
+        pop ecx edx
+        test eax, eax
+        jz @F
+
+        mov [ebx + GeometryObject.Id], 0
+        movzx eax, [ebx + GeometryObject.Type]
+        stdcall GeometryObject.IsDependableObjectType, eax
+        test eax, eax
+        jz @F
+
+        push edx ecx
+        stdcall Main._MarkDependentObjectsToDelete, [ebx + GeometryObject.Id]
+        pop ecx edx
+
+        @@:
+        add ebx, [edx]
+        add edx, 4
+        loop .MarkObjectsToDeleteLoop
+
+    .Return:
+    ret
+endp
+
+
+proc Main.DeleteObjectById uses ebx esi, Id
+    mov eax, [Id]
+    stdcall Main.FindPointIndexById
+    cmp eax, -1
+    je .TryDeleteAnotherObject
+
+    mov ebx, Points
+    mov esi, OBJ_POINT
+    stdcall Vector.DeleteByIndex, eax
+    jmp .DeleteDependentObjects
+
+    .TryDeleteAnotherObject:
+        stdcall Main.GetObjectIndexById, [Id]
+        cmp eax, -1
+        je .Return
+
+        movzx esi, byte [edx + GeometryObject.Type]
+        mov ebx, Objects
+        stdcall HeterogenousVector.DeleteByIndex, eax
+
+    stdcall GeometryObject.IsDependableObjectType, esi
+    test eax, eax
+    jz .Return
+
+    .DeleteDependentObjects:
+    stdcall Main._MarkDependentObjectsToDelete, [Id]
+
+    mov ecx, [Objects.Sizes.Length]
+    mov esi, [Objects.Ptr]
+    mov edx, [Objects.Sizes.Ptr]
+    mov ebx, Objects
+    xor eax, eax
+    .DeleteMarkedObjectsLoop:
+        cmp [esi + GeometryObject.Id], 0
+        jne @F
+
+        push eax ecx edx
+        stdcall HeterogenousVector.DeleteByIndex, eax
+        pop edx ecx eax
+        dec eax
+
+        @@:
+        add esi, [edx]
+        add edx, 4
+        inc eax
+        loop .DeleteMarkedObjectsLoop
+
+    .Return:
+    ret
+endp
+
 
 include 'Utils/Draw.asm'
 include 'Utils/Math.asm'
@@ -468,21 +604,6 @@ section '.idata' import data readable writeable
           comctl32, 'COMCTL32.DLL', \
           gdi32, 'GDI32.DLL', \
           gdiplus, 'GDIPLUS.dll'
-
-  import gdiplus, \
-         GdiplusStartup, 'GdiplusStartup', \
-         GdiplusShutdown, 'GdiplusShutdown', \
-         GdipDrawLineI, 'GdipDrawLineI', \
-         GdipDrawLine, 'GdipDrawLine', \
-         GdipCreatePen1, 'GdipCreatePen1', \
-         GdipCreateFromHDC, 'GdipCreateFromHDC', \
-         GdipDeletePen, 'GdipDeletePen', \
-         GdipDrawEllipseI, 'GdipDrawEllipseI', \
-         GdipFillEllipseI, 'GdipFillEllipseI', \
-         GdipDrawEllipse, 'GdipDrawEllipse', \
-         GdipFillEllipse, 'GdipFillEllipse', \
-         GdipCreateSolidFill, 'GdipCreateSolidFill', \
-         GdipDeleteBrush, 'GdipDeleteBrush'
 
   include 'api\kernel32.inc'
 

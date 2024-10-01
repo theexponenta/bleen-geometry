@@ -28,8 +28,6 @@ proc Point.Draw uses edi, hdc
     locals
         CenterX dd ?
         CenterY dd ?
-        DoubleSize dd ?
-        Two dq 2f
     endl
 
     ; Uninitialized points have Id = 0
@@ -41,33 +39,46 @@ proc Point.Draw uses edi, hdc
 
     mov edi, [hdc]
 
+    invoke GetStockObject, DC_BRUSH
+    invoke SelectObject, edi, eax
+    invoke SelectObject, edi, [Point.BorderPen]
+
+    invoke SetDCBrushColor, edi, [ebx + Point.Color]
+
     ; Circle
     stdcall Main.ToScreenPosition, [ebx + Point.X], [ebx + Point.Y]
     mov [CenterX], edx
     mov [CenterY], eax
-    stdcall Draw.FillCircle, [DrawArea.pGdipGraphics], [CenterX], [CenterY], [ebx + Point.Size], [ebx + Point.Color]
+    mov eax, [ebx + Point.Size]
+    stdcall Draw.Circle, edi, [CenterX], [CenterY], eax
 
-    cmp [ebx + Point.IsSelected], 0
-    je @F
+    cmp [ebx + Point.IsSelected], 1
+    jne @F
 
     ; Circle for selected point
-    fld [ebx + Point.Size]
-    fmul [Two]
-    fstp [DoubleSize]
-    stdcall Draw.Circle, [DrawArea.pGdipGraphics], [CenterX], [CenterY], [DoubleSize], Point.SelectedBorderSize, [ebx + Point.Color]
+    invoke GetStockObject, NULL_BRUSH
+    invoke SelectObject, edi, eax
+
+    invoke CreatePen, PS_SOLID, Point.SelectedBorderSize, [ebx + Point.Color]
+    mov [Point.SelectedBorderPen], eax
+    invoke SelectObject, edi, eax
+
+    mov eax, [ebx + Point.Size]
+    shl eax, 1
+    stdcall Draw.Circle, edi, [CenterX], [CenterY], eax
+
+    invoke GetStockObject, DC_PEN
+    invoke DeleteObject, [Point.SelectedBorderPen]
 
     @@:
     ; Name
-    mov eax, 0xFFFFFFFF
-    sub eax, [ebx + Point.Color]
-    invoke SetTextColor, edi, eax
-
     fld [CenterX]
     fistp [CenterX]
-    mov eax, [CenterX]
-    add eax, Point.NameTextOffset
     fld [CenterY]
     fistp [CenterY]
+    invoke SetTextColor, edi, [ebx + Point.Color]
+    mov eax, [CenterX]
+    add eax, Point.NameTextOffset
     mov ecx, [CenterY]
     sub ecx, Point.NameTextOffset
 
@@ -168,7 +179,7 @@ proc Point.IsOnPosition X, Y
     faddp
     fsqrt
 
-    fld [ebx + Point.Size]
+    fild [ebx + Point.Size]
     fcomip st, st1
     fstp st0
     jae .ReturnTrue

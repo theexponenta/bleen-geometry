@@ -193,16 +193,13 @@ proc Line.Draw uses edi, hdc
     cmp [ebx + Line.IsSelected], 0
     je @F
 
-    mov eax, [ebx + Segment.Color]
-    mov edx, GeometryObject.SelectedLineShadowOpacity
-    call Draw.GetColorWithOpacity
-    fld dword [ebx + Line.Width]
+    fild [ebx + Line.Width]
     fmul [GeometryObject.SelectedLineShadowWidthCoefficient]
-    fstp [SelectedWidth]
-    stdcall Draw.Line, [DrawArea.pGdipGraphics], [P1Border.x], [P1Border.y], [P2Border.x], [P2Border.y], [SelectedWidth], eax
+    fistp [SelectedWidth]
+    stdcall Draw.Line, [hdc], [P1Border.x], [P1Border.y], [P2Border.x], [P2Border.y], [SelectedWidth], GeometryObject.SelectedLineColor
 
     @@:
-    stdcall Draw.Line, [DrawArea.pGdipGraphics], [P1Border.x], [P1Border.y], [P2Border.x], [P2Border.y], [ebx + Line.Width], [ebx + Line.Color]
+    stdcall Draw.Line, [hdc], [P1Border.x], [P1Border.y], [P2Border.x], [P2Border.y], [ebx + Line.Width], [ebx + Line.Color]
 
     .Return:
     ret
@@ -224,7 +221,7 @@ proc Line.IsOnPosition X, Y
     ; All the arguments are pushed above
     stdcall Math.DistanceLinePoint
 
-    fld [ebx + Line.Width]
+    fild [ebx + Line.Width]
     fdiv [Scale]
     fcomip st0, st1
     fstp st0
