@@ -22,7 +22,9 @@ proc WinMain
     mov ebx, Objects
     stdcall HeterogenousVector.Create, 255
 
-    mov ebx, SelectedObjects
+    mov ebx, SelectedObjectsIds
+    stdcall Vector.Create, 4, 0, 40
+    mov ebx, SelectedObjectsPtrs
     stdcall Vector.Create, 4, 0, 40
 
     mov ebx, Points
@@ -149,7 +151,7 @@ endp
 
 
 ; eax - Point id
-; Returns pointer to Point object in eax
+; Returns pointer to Point object in eax , 0 if not found
 proc Main.FindPointById uses esi
     test eax, eax
     jnz @F
@@ -365,26 +367,32 @@ endp
 
 
 proc Main.AddSelectedObject uses ebx, pObject
-    mov ebx, SelectedObjects
+    mov ebx, SelectedObjectsPtrs
     stdcall Vector.PushValue, [pObject]
+
+    mov eax, [pObject]
+    mov ebx, SelectedObjectsIds
+    stdcall Vector.PushValue, [eax + GeometryObject.Id]
 
     ret
 endp
 
 
 proc Main.UnselectObjects uses ebx
-    mov ecx, [SelectedObjects.Length]
+    mov ecx, [SelectedObjectsPtrs.Length]
     test ecx, ecx
     jz .Return
 
-    mov edx, [SelectedObjects.Ptr]
+    mov edx, [SelectedObjectsPtrs.Ptr]
     .UnselectLoop:
         mov eax, [edx]
         mov byte[eax + GeometryObject.IsSelected], 0
         add edx, 4
         loop .UnselectLoop
 
-    mov ebx, SelectedObjects
+    mov ebx, SelectedObjectsPtrs
+    stdcall Vector.Clear
+    mov ebx, SelectedObjectsIds
     stdcall Vector.Clear
 
     .Return:
@@ -428,6 +436,36 @@ proc Main.Scale, X, Y, Direction
 endp
 
 
+; Get pointer to object by id, 0 if not found
+proc Main.GetObjectById uses edi, Id
+    mov eax, [Id]
+    stdcall Main.FindPointById
+    test eax, eax
+    jnz .Return
+
+    mov ecx, [Objects.Sizes.Length]
+    test ecx, ecx
+    jz .ReturnNotFound
+
+    mov edi, [Id]
+    mov edx, [Objects.Sizes.Ptr]
+    mov eax, [Objects.Ptr]
+    .FindLoop:
+        cmp edi, [eax + GeometryObject.Id]
+        je .Return
+
+        add eax, [edx]
+        add edx, 4
+        loop .FindLoop
+
+    .ReturnNotFound:
+    xor eax, eax
+
+    .Return:
+    ret
+endp
+
+
 ; Get index of object in Objects vector
 ;
 ; eax -- index. -1 if not found
@@ -461,6 +499,9 @@ endp
 
 proc Main._MarkDependentObjectsToDelete uses ebx, Id
     mov ecx, [Objects.Sizes.Length]
+    test ecx, ecx
+    jz .Return
+
     mov ebx, [Objects.Ptr]
     mov edx, [Objects.Sizes.Ptr]
     .MarkObjectsToDeleteLoop:
@@ -515,6 +556,8 @@ proc Main.DeleteObjectById uses ebx esi, Id
     jz .Return
 
     .DeleteDependentObjects:
+    cmp [Objects.Sizes.Length], 0
+    je .Return
     stdcall Main._MarkDependentObjectsToDelete, [Id]
 
     mov ecx, [Objects.Sizes.Length]
@@ -580,7 +623,8 @@ section '.data' data readable writeable
   Objects HeterogenousVector ?
   NextObjectId dd 1
 
-  SelectedObjects Vector ?
+  SelectedObjectsIds Vector ?
+  SelectedObjectsPtrs Vector ?
 
   CurrentToolId dd 1
   CurrentStateId dd 1
@@ -591,6 +635,8 @@ section '.data' data readable writeable
   Translate POINT 0f, 0f
   Scale dq 1.0
   ScaleStepCoefficient dq 1.1
+
+  CtrlKeyPressed dd 0
 
   include 'Windows/Main.d'
   include 'Windows/DrawArea.d'

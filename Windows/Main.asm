@@ -10,7 +10,9 @@ proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
     je .Wmcommand
     cmp eax, WM_KEYDOWN
     je .Wmkeydown
- 
+    cmp eax, WM_KEYUP
+    je .Wmkeyup
+
     .Defwndproc:
         invoke DefWindowProc, [hwnd], [wmsg], [wparam], [lparam]
         jmp .Return
@@ -39,7 +41,17 @@ proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
         jmp .Return_0
 
     .Wmkeydown:
+        cmp [wparam], VK_CONTROL
+        jne @F
+
+        mov [CtrlKeyPressed], 1
+
+        @@:
         invoke PostMessage, [DrawArea.hwnd], [wmsg], [wparam], [lparam]
+        jmp .Return_0
+
+    .Wmkeyup:
+        mov [CtrlKeyPressed], 0
         jmp .Return_0
 
     .Wmdestroy:

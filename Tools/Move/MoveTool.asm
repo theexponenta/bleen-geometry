@@ -1,18 +1,27 @@
 
 
-proc MoveTool.SelectObject
-    stdcall Main.UnselectObjects
+proc MoveTool.SelectObjects
+    mov [MoveTool.WasMoved], 0
 
     stdcall Main.GetObjectOnPosition, [CurrentMouseScreenPoint.X], [CurrentMouseScreenPoint.Y]
     test eax, eax
     jz .SetTranslateCanvas
 
-    mov [MoveTool.pSelectedObject], eax
-    mov [eax + GeometryObject.IsSelected], 1
+    cmp [eax + GeometryObject.IsSelected], 0
+    jne .ObjectSelected
 
+    cmp [CtrlKeyPressed], 0
+    jne .SelectObejct
+    push eax
+    stdcall Main.UnselectObjects
+    pop eax
+
+    .SelectObejct:
+    mov [eax + GeometryObject.IsSelected], 1
     stdcall Main.AddSelectedObject, eax
 
-    mov [CurrentStateId], MoveTool.States.MoveObject
+    .ObjectSelected:
+    mov [CurrentStateId], MoveTool.States.MoveObjects
     jmp .Finish
 
     .SetTranslateCanvas:
@@ -27,13 +36,23 @@ proc MoveTool.SelectObject
 endp
 
 
-proc MoveTool.SetSelectObject
-    mov [CurrentStateId], MoveTool.States.SelectObject
+proc MoveTool.SetSelectObjects
+    cmp [CurrentStateId], MoveTool.States.TranslateCanvas
+    jne @F
+    cmp [MoveTool.WasMoved], 0
+    jne @F
+
+    stdcall Main.UnselectObjects
+
+    @@:
+    mov [CurrentStateId], MoveTool.States.SelectObjects
     ret
 endp
 
 
 proc MoveTool.TranslateCanvas
+    mov [MoveTool.WasMoved], 1
+
     fld [CurrentMouseScreenPoint.X]
     fsub [MoveTool.PrevPoint.x]
     fadd [Translate.x]
@@ -53,15 +72,13 @@ proc MoveTool.TranslateCanvas
 endp
 
 
-proc MoveTool.MoveObject uses ebx
+proc MoveTool.MoveObjects uses ebx edi esi
     locals
         deltaX dd ?
         deltaY dd ?
     endl
 
-    mov ebx, [MoveTool.pSelectedObject]
-    test ebx, ebx
-    jz .Return
+    mov [MoveTool.WasMoved], 1
 
     fld [CurrentMouseScreenPoint.X]
     fsub [MoveTool.PrevPoint.x]
@@ -74,9 +91,19 @@ proc MoveTool.MoveObject uses ebx
     fstp [deltaY]
     fstp [deltaX]
 
-    mov edx, [deltaX]
-    mov ecx, [deltaY]
-    stdcall GeometryObject.Move
+    mov ecx, [SelectedObjectsPtrs.Length]
+    mov edi, [SelectedObjectsPtrs.ElementSize]
+    mov esi, [SelectedObjectsPtrs.Ptr]
+    .MoveLoop:
+        push ecx
+        mov ebx, [esi]
+        mov edx, [deltaX]
+        mov ecx, [deltaY]
+        stdcall GeometryObject.Move
+        pop ecx
+
+        add esi, edi
+        loop .MoveLoop
 
     mov eax, [CurrentMouseScreenPoint.X]
     mov [MoveTool.PrevPoint.x], eax
@@ -89,16 +116,21 @@ endp
 
 
 proc MoveTool.DeleteSelectedObjects uses ebx edi esi
-    mov ecx, [SelectedObjects.Length]
+    mov ecx, [SelectedObjectsIds.Length]
     test ecx, ecx
     jz .Return
 
-    mov edi, [SelectedObjects.ElementSize]
-    mov esi, [SelectedObjects.Ptr]
+    mov edi, [SelectedObjectsIds.ElementSize]
+    mov esi, [SelectedObjectsIds.Ptr]
     .DeleteLoop:
         push ecx
-        mov eax, [esi]
+        stdcall Main.GetObjectById, [esi]
+        test eax, eax
+        jz @F
+
         stdcall Main.DeleteObjectById, [eax + GeometryObject.Id]
+
+        @@:
         pop ecx
         add esi, edi
         loop .DeleteLoop
