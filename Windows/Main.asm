@@ -12,6 +12,8 @@ proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
     je .Wmkeydown
     cmp eax, WM_KEYUP
     je .Wmkeyup
+    cmp eax, WM_SIZE
+    je .Wmsize
 
     .Defwndproc:
         invoke DefWindowProc, [hwnd], [wmsg], [wparam], [lparam]
@@ -54,6 +56,10 @@ proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
         mov [CtrlKeyPressed], 0
         jmp .Return_0
 
+    .Wmsize:
+        invoke SendMessage, [MainWindow.Toolbar.hwnd], WM_SIZE, 0, 0
+        jmp .Return_0
+
     .Wmdestroy:
         invoke PostQuitMessage,0
 
@@ -90,8 +96,6 @@ proc MainWindow.CreateToolbar uses esi edi ebx, hwnd
      invoke SendMessage, esi, TB_SETIMAGELIST, 0, edi
      invoke SendMessage, esi, TB_BUTTONSTRUCTSIZE, sizeof.TBBUTTON, 0
      invoke SendMessage, esi, TB_ADDBUTTONS, MainWindow.Toolbar.ButtonsCount, MainWindow.Toolbar.Buttons
-
-     invoke SendMessage, esi, WM_SIZE, 0, 0
 
      ret
 endp

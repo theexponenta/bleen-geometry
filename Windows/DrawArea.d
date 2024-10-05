@@ -7,7 +7,7 @@ DrawArea.PaintStruct PAINTSTRUCT ?
 DrawArea.Width dd ?
 DrawArea.Height dd ?
 
-DrawArea.OffsetX = 32
-DrawArea.OffsetY = 0
+DrawArea.OffsetX = 0
+DrawArea.OffsetY = 40
 
 
