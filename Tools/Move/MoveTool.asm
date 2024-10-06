@@ -51,6 +51,7 @@ endp
 
 
 proc MoveTool.TranslateCanvas
+    mov [AxesAndGridNeedRedraw], 1
     mov [MoveTool.WasMoved], 1
 
     fld [CurrentMouseScreenPoint.X]
@@ -78,6 +79,7 @@ proc MoveTool.MoveObjects uses ebx edi esi
         deltaY dd ?
     endl
 
+    mov [AxesAndGridNeedRedraw], 1
     mov [MoveTool.WasMoved], 1
 
     fld [CurrentMouseScreenPoint.X]

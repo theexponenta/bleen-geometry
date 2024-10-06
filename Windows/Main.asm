@@ -30,7 +30,7 @@ proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
         invoke CreateWindowEx, 0, DrawArea.wcexClass.ClassName, NULL, WS_CHILD or WS_VISIBLE, DrawArea.OffsetX, DrawArea.OffsetY, \
                                [DrawArea.Width], [DrawArea.Height], [hwnd], NULL, [hInstance], NULL
         mov [DrawArea.hwnd], eax
-        stdcall DrawArea.Clear, [DrawArea.MemDC]
+        stdcall DrawArea.Clear, [DrawArea.MainBufferDC]
 
         stdcall MainWindow.CreateToolbar, [hwnd]
 

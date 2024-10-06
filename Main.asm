@@ -432,6 +432,7 @@ proc Main.Scale, X, Y, Direction
     fmulp st1, st0
     fstp [Scale]
 
+    mov [AxesAndGridNeedRedraw], 1
     ret
 endp
 
@@ -637,6 +638,9 @@ section '.data' data readable writeable
   ScaleStepCoefficient dq 1.1
 
   CtrlKeyPressed dd 0
+
+  ShowAxes dd 0
+  AxesAndGridNeedRedraw dd 1
 
   include 'Windows/Main.d'
   include 'Windows/DrawArea.d'
