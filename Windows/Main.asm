@@ -34,6 +34,21 @@ proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
 
         stdcall MainWindow.CreateToolbar, [hwnd]
 
+        fild [DrawArea.Width]
+        fld [InitialXWidth]
+        fdivp
+        fstp [Scale]
+
+        fld1
+        fadd st0, st0
+        fild [DrawArea.Width]
+        fdiv st0, st1
+        fstp [Translate.x]
+        fild [DrawArea.Height]
+        fdiv st0, st1
+        fstp [Translate.y]
+        fstp st0
+
         jmp .Return_0
 
     .Wmcommand:

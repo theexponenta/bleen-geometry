@@ -222,7 +222,6 @@ endp
 
 proc DrawArea.DrawAxes hdc
     locals
-        Two dq 2f
         X dd ?
         Y dd ?
         Width dd ?
@@ -232,12 +231,10 @@ proc DrawArea.DrawAxes hdc
     fild [DrawArea.Width]
     fstp [Width]
     fild [DrawArea.Height]
-    fst [Height]
+    fstp [Height]
 
     ; X-axis
-    fdiv [Two]
-    fmul [Scale]
-    fadd [Translate.y]
+    fld [Translate.y]
     fldz
     fcomip st0, st1
     ja @F
@@ -245,16 +242,15 @@ proc DrawArea.DrawAxes hdc
     fcomip st0, st1
     jb @F
 
-    fst [Y]
+    fstp [Y]
     stdcall Draw.Line, [hdc], 0, [Y], [Width], [Y], DrawArea.AxesWidth, DrawArea.AxesColor
+    stdcall DrawArea.DrawAxisTicks, [hdc], DrawArea.XAxis
+    fldz ; Push something on stack to let next instruction to pop it
 
     @@:
     fstp st0
     ; Y-axis
-    fld [Width]
-    fdiv [Two]
-    fmul [Scale]
-    fadd [Translate.x]
+    fld [Translate.x]
     fldz
     fcomip st0, st1
     ja .Return
@@ -264,12 +260,198 @@ proc DrawArea.DrawAxes hdc
 
     fst [X]
     stdcall Draw.Line, [hdc], [X], 0, [X], [Height], DrawArea.AxesWidth, DrawArea.AxesColor
+    fstp st0
+    stdcall DrawArea.DrawAxisTicks, [hdc], DrawArea.YAxis
 
     .Return:
-    fstp st0
     ret
 endp
 
 
+proc DrawArea.DrawAxisTicks uses edi esi ebx, hdc, AxisType
+    locals
+        AxisLength dd ?
+        TranslateValue dd ?
+        PointStructureOffset dd ?
 
+        Precision dd ?
+        StringBuffer db 32 dup(?)
+        PrevTextAlign dd ?
+        Log10Length dd ?
+        TotalTicksCount dd ?
+        CurrentTicksCount dd ?
 
+        CurrentTickMarkPoint POINT ?
+        CurrentTickLabelPoint POINT ?
+    endl
+
+    mov eax, [DrawArea.Width]
+    mov [AxisLength], eax
+    fld [Translate.x]
+    fstp [TranslateValue]
+
+    xor edx, edx
+    mov eax, [AxisType]
+    cmp eax, DrawArea.XAxis
+    je .SaveOffsetValue
+    cmp eax, DrawArea.YAxis
+    jne .Return
+
+    mov eax, [DrawArea.Height]
+    mov [AxisLength], eax
+    mov edx, 4
+    fld [Translate.y]
+    fstp [TranslateValue]
+
+    .SaveOffsetValue:
+    mov [PointStructureOffset], edx
+
+    lea edi, [StringBuffer]
+    mov esi, [hdc]
+
+    neg edx
+    fld dword [Translate + 4 + edx]
+    fist dword [CurrentTickMarkPoint + 4 + edx]
+    fistp dword [CurrentTickLabelPoint + 4 + edx]
+    add dword [CurrentTickLabelPoint + 4 + edx], DrawArea.TickLabelDistanceFromAxis
+
+    fild [MinDistanceBetweenTicks]
+    fdiv [Scale]
+
+    ; Trunc(Lg(AxisLength / Scale)) - 1
+    fild [AxisLength]
+    fdiv [Scale]
+    call Math.Log10
+    fld1
+    fsubp
+    call Math.Floor
+
+    fld st0
+    fldz
+    call Math.FPUMin
+    fchs
+    fistp [Precision]
+
+    fstp [Log10Length]
+
+    ; Let's call the value in st0 after this procedure "Pow10"
+    stdcall Math.Pow, 10f, [Log10Length]
+
+    fld st0 ; Copy Pow10, now Pow10 is in st0 and st1
+
+    ; Check Multiplier=1
+    fcomi st0, st2
+    jae @F
+
+    fadd st0, st1 ; Pow10*2
+    ; Check Multiplier=2
+    fcomi st0, st2
+    jae @F
+
+    fadd st0, st0 ; st0=Pow10*4
+    fadd st0, st1 ; st0=Pow10*5
+
+    @@:
+    fxch ; Move Pow10 to st0 from st1
+    fstp st0 ; Pop Pow10
+
+    fxch ; Move MinDistanceBetweenTicks / Scale to st0 from st1
+    fstp st0 ; Pop MinDistanceBetweenTicks / Scale
+
+    ; Step (screen)
+    fld st0
+    fmul [Scale]
+    cmp [AxisType], DrawArea.YAxis
+    jne @F
+    fchs
+
+    @@:
+    ; Ticks count
+    fild [AxisLength]
+    fdiv st0, st1
+    fabs
+    call Math.Ceil
+    fistp [TotalTicksCount]
+
+    ; Starting number of steps
+    fld [TranslateValue]
+    fldz
+    cmp [AxisType], DrawArea.XAxis
+    je @F
+
+    fiadd [AxisLength]
+    fxch
+
+    @@:
+    fsubrp
+    fdiv [Scale]
+    fdiv st0, st2
+    call Math.Ceil
+
+    ; Start coordinate (Screen)
+    fld st0
+    fmul st0, st3
+    fmul [Scale]
+    cmp [AxisType], DrawArea.YAxis
+    jne @F
+    fchs
+
+    @@:
+    fadd [TranslateValue]
+
+    ; Move plane start coordinate to st0 from st1
+    fxch
+
+    invoke GetTextAlign, esi
+    mov [PrevTextAlign], eax
+    invoke SetTextAlign, esi, TA_CENTER
+    invoke SetTextColor, esi, DrawArea.AxesColor
+
+    mov ecx, [TotalTicksCount]
+    mov [CurrentTicksCount], 0
+    .DrawTicksLoop:
+        push ecx
+
+        fld st0
+        fiadd [CurrentTicksCount]
+        call Math.Round
+        fmul st0, st4
+
+        stdcall Math.FloatToStr, edi, [Precision]
+        invoke lstrlenA, edi
+        fstp st0
+
+        fxch
+
+        mov edx, [PointStructureOffset]
+        fist dword [CurrentTickLabelPoint + edx]
+        fist dword [CurrentTickMarkPoint + edx]
+
+        push edx
+        invoke TextOutA, esi, [CurrentTickLabelPoint.x], [CurrentTickLabelPoint.y], edi, eax
+        invoke MoveToEx, esi, [CurrentTickMarkPoint.x], [CurrentTickMarkPoint.y], NULL
+        pop edx
+
+        neg edx
+        add dword [CurrentTickMarkPoint + 4 + edx], DrawArea.AxisTickLength
+        push edx
+        invoke LineTo, esi, [CurrentTickMarkPoint.x], [CurrentTickMarkPoint.y]
+        pop edx
+        sub dword [CurrentTickMarkPoint + 4 + edx], DrawArea.AxisTickLength
+
+        pop ecx
+
+        fadd st0, st2
+        fxch
+        inc [CurrentTicksCount]
+        loop .DrawTicksLoop
+
+    .Finish:
+    invoke SetTextAlign, [PrevTextAlign]
+    fstp st0
+    fstp st0
+    fstp st0
+    fstp st0
+    .Return:
+    ret
+endp

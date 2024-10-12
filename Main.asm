@@ -15,6 +15,14 @@ section '.text' code readable executable
 
 proc WinMain
     local Msg MSG
+    local CW dw ?
+
+    fstcw [CW]
+    mov ax, [CW]
+    and ax, 1111_1100_1111_1111b
+    or ax, 11b shl 8
+    mov [CW], ax
+    fldcw [CW]
 
     invoke GetProcessHeap
     mov [hProcessHeap], eax
@@ -612,9 +620,6 @@ section '.data' data readable writeable
   DC_BRUSH = 18
   DC_PEN = 19
 
-  GdipToken dd ?
-  GdipStartupInput dd 1, 0, 0, 0, 0
-
   hpWhite dd ?
   hbrWhite dd ?
 
@@ -637,10 +642,15 @@ section '.data' data readable writeable
   Scale dq 1.0
   ScaleStepCoefficient dq 1.1
 
+  InitialXWidth dd 30f
+  MinDistanceBetweenTicks dd 50
+
   CtrlKeyPressed dd 0
 
   ShowAxes dd 0
   AxesAndGridNeedRedraw dd 1
+
+  MaxInt dd 2147483647
 
   include 'Windows/Main.d'
   include 'Windows/DrawArea.d'
