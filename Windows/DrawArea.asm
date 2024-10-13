@@ -50,6 +50,10 @@ proc DrawArea.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
 
         stdcall DrawArea.CreateMainPopupMenu
 
+        invoke CreateFont, DrawArea.AxisTickFontSize, 0, 0, 0, FW_EXTRALIGHT, FALSE, FALSE, FALSE, DEFAULT_CHARSET, \
+                           OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY, VARIABLE_PITCH, NULL
+        mov [DrawArea.AxesTickFont], eax
+
         jmp .Return_0
 
     .Wmpaint:
@@ -125,6 +129,7 @@ proc DrawArea.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
 
      .Wmdestroy:
          invoke DestroyMenu, [DrawArea.MainPopupMenu.Handle]
+         invoke DeleteObject, [DrawArea.AxesTickFont]
 
     .Return_0:
         xor eax, eax
@@ -277,6 +282,7 @@ proc DrawArea.DrawAxisTicks uses edi esi ebx, hdc, AxisType
         Precision dd ?
         StringBuffer db 32 dup(?)
         PrevTextAlign dd ?
+        PrevFont dd ?
         Log10Length dd ?
         TotalTicksCount dd ?
         CurrentTicksCount dd ?
@@ -404,6 +410,11 @@ proc DrawArea.DrawAxisTicks uses edi esi ebx, hdc, AxisType
 
     invoke GetTextAlign, esi
     mov [PrevTextAlign], eax
+    OBJ_FONT = 6
+    invoke GetCurrentObject, esi, OBJ_FONT
+    mov [PrevFont], eax
+
+    invoke SelectObject, esi, [DrawArea.AxesTickFont]
     invoke SetTextAlign, esi, TA_CENTER
     invoke SetTextColor, esi, DrawArea.AxesColor
 
@@ -448,6 +459,8 @@ proc DrawArea.DrawAxisTicks uses edi esi ebx, hdc, AxisType
 
     .Finish:
     invoke SetTextAlign, [PrevTextAlign]
+    invoke SelectObject, esi, [PrevFont]
+
     fstp st0
     fstp st0
     fstp st0
