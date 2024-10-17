@@ -71,3 +71,14 @@ proc Main.AddCircleWithCenter uses ebx, CenterPointId, SecondPointId
 
     ret
 endp
+
+
+proc Main.AddEllipse uses ebx, Focus1PointId, Focus2PointId, CircumferencePointId
+    local NewEllipse EllipseObj ?
+
+    lea ebx, [NewEllipse]
+    stdcall EllipseObj.Create, [NextObjectId], 0, 0, [Focus1PointId], [Focus2PointId], [CircumferencePointId], GeometryObject.DefaultLineWidth, GeometryObject.DefaultLineColor
+    stdcall Main.AddObject, ebx, sizeof.EllipseObj
+
+    ret
+endp

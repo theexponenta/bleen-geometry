@@ -2,6 +2,8 @@
 proc DrawArea.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
     locals
         TransitionMessage dd ?
+        WidthHalf dd ?
+        HeightHalf dd ?
     endl
 
     mov eax, [wmsg]
@@ -33,17 +35,40 @@ proc DrawArea.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
         jmp .Return
 
     .Wmcreate:
+        mov eax, [DrawArea.Width]
+        shr eax, 1
+        mov [WidthHalf], eax
+        mov eax, [DrawArea.Height]
+        shr eax, 1
+        mov [HeightHalf], eax
+
         invoke GetDC, [hwnd]
         mov [DrawArea.hDC], eax
 
         invoke CreateCompatibleDC, eax
         mov [DrawArea.MainBufferDC], eax
-
+        invoke SetGraphicsMode, eax, GM_ADVANCED
+        ;invoke SetMapMode, [DrawArea.MainBufferDC], MM_ANISOTROPIC
+        ;mov edx, [DrawArea.Height]
+        ;neg edx
+        ;push edx
+        ;invoke SetViewportExtEx, [DrawArea.MainBufferDC], [DrawArea.Width], edx, NULL
+        ;pop edx
+        ;invoke SetWindowExtEx, [DrawArea.MainBufferDC], [DrawArea.Width], edx, NULL
+        ;invoke SetViewportOrgEx, [DrawArea.MainBufferDC], [WidthHalf], [HeightHalf], NULL
         invoke CreateCompatibleBitmap, [DrawArea.hDC], [DrawArea.Width], [DrawArea.Height]
         invoke SelectObject, [DrawArea.MainBufferDC], eax
 
         invoke CreateCompatibleDC, [DrawArea.hDC]
         mov [DrawArea.AxesGridBufferDC], eax
+        ;invoke SetMapMode, eax, MM_ANISOTROPIC
+        ;mov edx, [DrawArea.Height]
+        ;neg edx
+        ;push edx
+        ;invoke SetViewportExtEx, [DrawArea.AxesGridBufferDC], [DrawArea.Width], edx, NULL
+        ;pop edx
+        ;invoke SetWindowExtEx, [DrawArea.MainBufferDC], [DrawArea.Width], edx, NULL
+        ;invoke SetViewportOrgEx, [DrawArea.AxesGridBufferDC], [WidthHalf], [HeightHalf], NULL
         invoke CreateCompatibleBitmap, [DrawArea.hDC], [DrawArea.Width], [DrawArea.Height]
         invoke SelectObject, [DrawArea.AxesGridBufferDC], eax
         stdcall DrawArea.Clear, [DrawArea.AxesGridBufferDC]

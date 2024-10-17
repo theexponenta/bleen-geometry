@@ -2,6 +2,7 @@ format PE GUI 5.0
 entry WinMain
 
 include 'win32w.inc'
+include './Equates/GDI.inc'
 include 'DataStructures/Vector.inc'
 include 'DataStructures/HeterogenousVector.inc'
 include 'DataStructures/LinkedList.inc'
@@ -226,7 +227,7 @@ proc Main.ToScreenPosition, X, Y
     fld [X]
     fld [Y]
     fmul st0, st2
-    fadd [Translate.y]
+    fsubr [Translate.y]
     fstp [Y]
     fmul st0, st1
     fadd [Translate.x]
@@ -246,8 +247,8 @@ proc Main.ToPlanePosition, X, Y
     fld [Scale]
     fld [X]
     fsub [Translate.x]
-    fld [Y]
-    fsub [Translate.y]
+    fld [Translate.y]
+    fsub [Y]
     fdiv st0, st2
     fstp [Y]
     fdiv st0, st1

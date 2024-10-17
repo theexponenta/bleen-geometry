@@ -90,6 +90,7 @@ proc MoveTool.MoveObjects uses ebx edi esi
     fdiv st1, st0
     fdiv st2, st0
     fstp st0
+    fchs
     fstp [deltaY]
     fstp [deltaX]
 

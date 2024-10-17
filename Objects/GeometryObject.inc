@@ -1,4 +1,9 @@
 
+OBJ_POINT = 1
+OBJ_SEGMENT = 2
+OBJ_CIRCLE_WITH_CENTER = 3
+OBJ_LINE = 4
+OBJ_ELLIPSE = 5
 
 struct GeometryObject
     Id dd ?

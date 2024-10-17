@@ -278,6 +278,48 @@ proc Math.Log10
 endp
 
 
+; Returns: eax - Rotated X coordinate
+;          edx - Rotated Y coordinate
+proc Math.RotatePoint, X, Y, Angle, OrgX, OrgY
+    locals
+        RotatedX dd ?
+        RotatedY dd ?
+    endl
+
+    fld [X]
+    fsub [OrgX]
+    fld [Y]
+    fsub [OrgY]
+    fld [Angle]
+    fsincos
+
+    fld st3
+    fmul st0, st1
+    fld st3
+    fmul st0, st3
+    fsubp
+    fadd [OrgX]
+
+    fld st4
+    fmul st0, st3
+    fld st4
+    fmul st0, st3
+    faddp
+    fadd [OrgY]
+
+    fstp [RotatedY]
+    fstp [RotatedX]
+    mov eax, [RotatedX]
+    mov edx, [RotatedY]
+
+    fstp st0
+    fstp st0
+    fstp st0
+    fstp st0
+    ret
+endp
+
+
 ; eax - number
 proc Math.IntToStr uses edi, pBuffer
     mov edi, [pBuffer]

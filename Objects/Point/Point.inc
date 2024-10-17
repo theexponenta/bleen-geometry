@@ -1,7 +1,4 @@
 
-OBJ_POINT = 1
-
-
 struct Point GeometryObject
     X dd ?
     Y dd ?
