@@ -34,10 +34,12 @@ proc EllipseObj.Draw hdc
         SemiMinorLength dd ?
         FocalDistance dd ?
         Center POINT ?
-        MinusCenterY dd ?
         Angle dd ?
 
         hPenMain dd ?
+        hPenSelected dd 0
+        SelectedWidth dd ?
+
         Two dd 2f
     endl
 
@@ -124,24 +126,27 @@ proc EllipseObj.Draw hdc
     lea eax, [NewWorldTransform]
     invoke SetWorldTransform, [hdc], eax
 
+    invoke GetStockObject, NULL_BRUSH
+    invoke SelectObject, [hdc], eax
+
+    cmp [ebx + EllipseObj.IsSelected], 0
+    jz @F
+
+    fild [ebx + EllipseObj.Width]
+    fmul [GeometryObject.SelectedLineShadowWidthCoefficient]
+    fistp [SelectedWidth]
+    invoke CreatePen, PS_SOLID, [SelectedWidth], GeometryObject.SelectedLineColor
+    mov [hPenSelected], eax
+    invoke SelectObject, [hdc], eax
+
+    stdcall Draw.Ellipse, [hdc], [Center.x], [Center.y], [SemiMinorLength], [SemiMajorLength]
+
+    @@:
     invoke CreatePen, PS_SOLID, [ebx + EllipseObj.Width], [ebx + EllipseObj.Color]
     mov [hPenMain], eax
     invoke SelectObject, [hdc], eax
 
-    mov eax, [Center.x]
-    mov edx, [Center.y]
-    add eax, [SemiMajorLength]
-    add edx, [SemiMinorLength]
-    push edx eax
-    mov ecx, [SemiMajorLength]
-    shl ecx, 1
-    sub eax, ecx
-    mov ecx, [SemiMinorLength]
-    shl ecx, 1
-    sub edx, ecx
-    push edx eax
-    push [hdc]
-    invoke Ellipse
+    stdcall Draw.Ellipse, [hdc], [Center.x], [Center.y], [SemiMinorLength], [SemiMajorLength]
 
     lea eax, [PrevWorldTranform]
     invoke SetWorldTransform, [hdc], eax
@@ -185,6 +190,56 @@ endp
 
 
 proc EllipseObj.IsOnPosition X, Y
+    locals
+        Focus1 POINT ?
+        Focus2 POINT ?
+        CircumferencePoint POINT ?
+
+        Two dd 2f
+    endl
+
+    mov eax, [ebx + EllipseObj.FocusPoint1Id]
+    stdcall Main.FindPointById
+    mov edx, [eax + Point.X]
+    mov [Focus1.x], edx
+    mov edx, [eax + Point.Y]
+    mov [Focus1.y], edx
+
+    mov eax, [ebx + EllipseObj.FocusPoint2Id]
+    stdcall Main.FindPointById
+    mov edx, [eax + Point.X]
+    mov [Focus2.x], edx
+    mov edx, [eax + Point.Y]
+    mov [Focus2.y], edx
+
+    mov eax, [ebx + EllipseObj.CircumferencePointId]
+    stdcall Main.FindPointById
+    mov edx, [eax + Point.X]
+    mov [CircumferencePoint.x], edx
+    mov edx, [eax + Point.Y]
+    mov [CircumferencePoint.y], edx
+
+    stdcall Math.Distance, [CircumferencePoint.x], [CircumferencePoint.y], [Focus1.x], [Focus1.y]
+    stdcall Math.Distance, [CircumferencePoint.x], [CircumferencePoint.y], [Focus2.x], [Focus2.y]
+    faddp
+
+    stdcall Math.Distance, [X], [Y], [Focus1.x], [Focus1.y]
+    stdcall Math.Distance, [X], [Y], [Focus2.x], [Focus2.y]
+    faddp
+
+    fsubp
+    fabs
+
     xor eax, eax
+
+    fild [ebx + EllipseObj.Width]
+    fdiv [Scale]
+    fcomip st0, st1
+    jb .Return
+
+    mov eax, 1
+
+    .Return:
+    fstp st0
     ret
 endp

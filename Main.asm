@@ -682,10 +682,12 @@ section '.rsrc' resource data readable
              TOOL_POINT, LANG_NEUTRAL, point_icon, \
              TOOL_SEGMENT, LANG_NEUTRAL, segment_icon, \
              TOOL_CIRCLE_WITH_CENTER, LANG_NEUTRAL, circle_with_center_icon, \
-             TOOL_LINE, LANG_NEUTRAL, line_icon
+             TOOL_LINE, LANG_NEUTRAL, line_icon, \
+             TOOL_ELLIPSE, LANG_NEUTRAL, ellipse_icon
 
     bitmap move_icon, 'icons/move.bmp'
     bitmap point_icon, 'icons/point.bmp'
     bitmap segment_icon, 'icons/segment.bmp'
     bitmap circle_with_center_icon, 'icons/circle_with_center.bmp'
     bitmap line_icon, 'icons/line_icon.bmp'
+    bitmap ellipse_icon, 'icons/ellipse_icon.bmp'

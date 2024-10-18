@@ -23,6 +23,26 @@ proc Draw.Circle, hdc, X, Y, Radius
 endp
 
 
+proc Draw.Ellipse, hdc, CenterX, CenterY, SemiMinor, SemiMajor
+    mov eax, [CenterX]
+    mov edx, [CenterY]
+    add eax, [SemiMajor]
+    add edx, [SemiMinor]
+    push edx eax
+    mov ecx, [SemiMajor]
+    shl ecx, 1
+    sub eax, ecx
+    mov ecx, [SemiMinor]
+    shl ecx, 1
+    sub edx, ecx
+    push edx eax
+    push [hdc]
+    invoke Ellipse
+
+    ret
+endp
+
+
 proc Draw.Line uses ebx, hdc, X1, Y1, X2, Y2, Width, Color
     invoke CreatePen, PS_SOLID, [Width], [Color]
     mov ebx, eax
