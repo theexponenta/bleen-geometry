@@ -154,11 +154,18 @@ proc EllipseObj.Draw hdc
     invoke GetStockObject, DC_PEN
     invoke SelectObject, [hdc], eax
 
+    invoke DeleteObject, [hPenMain]
+    cmp [hPenSelected], 0
+    je .Return
+
+    invoke DeleteObject, [hPenSelected]
+
+    .Return:
     ret
 endp
 
 
-proc EllipseObj.Move uses esi edi ebx
+proc EllipseObj.Move uses esi ebx
     mov esi, ebx
 
     mov eax, [esi + EllipseObj.FocusPoint1Id]

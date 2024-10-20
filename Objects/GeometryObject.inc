@@ -4,6 +4,7 @@ OBJ_SEGMENT = 2
 OBJ_CIRCLE_WITH_CENTER = 3
 OBJ_LINE = 4
 OBJ_ELLIPSE = 5
+OBJ_POLYLINE = 6
 
 struct GeometryObject
     Id dd ?

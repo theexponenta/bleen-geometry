@@ -88,8 +88,14 @@ endp
 
 
 proc GeometryObject.DependsOnObject, Id
-    mov edx, Objects.DependencyObjectsIdsOffsets
     movzx eax, byte [ebx + GeometryObject.Type]
+    cmp eax, OBJ_POLYLINE
+    jne @F
+
+    stdcall PolylineObj.DependsOnObject, [Id]
+
+    @@:
+    mov edx, Objects.DependencyObjectsIdsOffsets
     dec eax
     shl eax, 2
 

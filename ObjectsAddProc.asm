@@ -82,3 +82,14 @@ proc Main.AddEllipse uses ebx, Focus1PointId, Focus2PointId, CircumferencePointI
 
     ret
 endp
+
+
+proc Main.AddPolyline uses ebx
+    local NewPolyline PolylineObj ?
+
+    lea ebx, [NewPolyline]
+    stdcall PolylineObj.Create, [NextObjectId], 0, 0, GeometryObject.DefaultLineWidth, GeometryObject.DefaultLineColor
+    stdcall Main.AddObject, ebx, sizeof.PolylineObj
+
+    ret
+endp

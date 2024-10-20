@@ -62,25 +62,9 @@ proc Segment.IsOnPosition uses edi, X, Y
         Y1 dd ?
         X2 dd ?
         Y2 dd ?
+        WidthScaled dd ?
     endl
 
-    ; Let d be a distance between point (X, Y) and segement line
-    ; Let X1, X2 be x-coordinates of segment edge points
-    ; Let w be width of segment line
-    ;
-    ; Segment is on given position if the following conditions are met:
-    ;
-    ; min(X1, X2) <= X <= max(X1, X2)
-    ; d <= w
-
-    ; To determine if the segment is on given position,
-    ; we need to calculate distance between point and the line of the segment,
-    ; then compare it with width of the segment, and finally determine if
-    ; x-coordinate of the given point lies between x1 and x2
-
-    ;mov edi, [ebx + Segment.AttachedPointsIds.Ptr]
-
-    ;mov eax, [edi]
     mov eax, [ebx + Segment.Point1Id]
     call Main.FindPointById
     mov edx, [eax + Point.X]
@@ -95,50 +79,12 @@ proc Segment.IsOnPosition uses edi, X, Y
     mov edx, [eax + Point.Y]
     mov [Y2], edx
 
-    ; Caclulate min(X1, X2) and max(X1, X2)
-    fld [X1]
-    fld [X2]
-    fld st0
-    fld st2
-    stdcall Math.FPUMin
-    fxch st2
-    stdcall Math.FPUMax
-
-    fld [X]
-
-    mov eax, 1
-
-    fcomi st0, st1
-    jbe @F
-
-    xor eax, eax
-    jmp .EndXCheck
-
-    @@:
-    fcomi st0, st2
-    jae .EndXCheck
-
-    xor eax, eax
-
-    .EndXCheck:
-        fstp st0
-        fstp st0
-        fstp st0
-        test eax, eax
-        jz .Return
-
-    ; Resutlting distance
-    stdcall Math.DistanceLinePoint, [X1] ,[Y1], [X2], [Y2], [X], [Y]
     fild [ebx + Segment.Width]
     fdiv [Scale]
-    fcomip st0, st1
-    fstp st0
-    mov eax, 1
-    jae .Return
+    fstp [WidthScaled]
 
-    xor eax, eax
+    stdcall Math.IsSegmentOnPosition, [X1] ,[Y1], [X2], [Y2], [X], [Y], [WidthScaled]
 
-    .Return:
     ret
 endp
 
