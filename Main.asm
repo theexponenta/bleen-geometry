@@ -649,6 +649,7 @@ section '.data' data readable writeable
   CtrlKeyPressed dd 0
 
   ShowAxes dd 0
+  ShowGrid dd 0
   AxesAndGridNeedRedraw dd 1
 
   MaxInt dd 2147483647

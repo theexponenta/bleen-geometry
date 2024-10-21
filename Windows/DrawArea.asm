@@ -105,13 +105,26 @@ proc DrawArea.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
 
     .Wmcommand:
         movzx eax, word [wparam]
-        cmp eax, 1
-        jnz .Return_0
 
+        cmp eax, DrawArea.MainPopupMenu.Commands.ShowAxes
+        jne @F
         xor dword [ShowAxes], 1
         mov eax, [ShowAxes]
         shl eax, 3 ; because MF_CHECKED = 8
-        invoke CheckMenuItem, [DrawArea.MainPopupMenu.Handle], 1, eax
+        invoke CheckMenuItem, [DrawArea.MainPopupMenu.Handle], DrawArea.MainPopupMenu.Commands.ShowAxes, eax
+        mov [AxesAndGridNeedRedraw], 1
+        jmp .DrawMenu
+
+        @@:
+        cmp eax, DrawArea.MainPopupMenu.Commands.ShowGrid
+        jne .Return_0
+        xor dword [ShowGrid], 1
+        mov eax, [ShowGrid]
+        shl eax, 3 ; because MF_CHECKED = 8
+        invoke CheckMenuItem, [DrawArea.MainPopupMenu.Handle], DrawArea.MainPopupMenu.Commands.ShowGrid, eax
+        mov [AxesAndGridNeedRedraw], 1
+
+        .DrawMenu:
         invoke DrawMenuBar, [DrawArea.MainPopupMenu.Handle]
         jmp .Redraw
 
@@ -169,7 +182,8 @@ proc DrawArea.CreateMainPopupMenu uses ebx
    mov [DrawArea.MainPopupMenu.Handle], eax
    mov ebx, eax
 
-   invoke AppendMenu, ebx, MF_STRING or MF_UNCHECKED, 1, DrawArea.MainPopupMenu.String.ShowAxes
+   invoke AppendMenu, ebx, MF_STRING or MF_UNCHECKED, DrawArea.MainPopupMenu.Commands.ShowAxes, DrawArea.MainPopupMenu.Strings.ShowAxes
+   invoke AppendMenu, ebx, MF_STRING or MF_UNCHECKED, DrawArea.MainPopupMenu.Commands.ShowGrid, DrawArea.MainPopupMenu.Strings.ShowGrid
    invoke DrawMenuBar, ebx
 
    ret
@@ -207,17 +221,24 @@ endp
 proc DrawArea.Redraw uses ebx edi
     stdcall DrawArea.Clear, [DrawArea.MainBufferDC]
 
-    cmp [ShowAxes], 0
-    je .DrawObjects
-
     cmp [AxesAndGridNeedRedraw], 0
+    je .CopyToMainBuffer
+
+    mov [AxesAndGridNeedRedraw], 0
+    stdcall DrawArea.Clear, [DrawArea.AxesGridBufferDC]
+
+    cmp [ShowGrid], 0
     je @F
 
-    stdcall DrawArea.Clear, [DrawArea.AxesGridBufferDC]
-    stdcall DrawArea.DrawAxes, [DrawArea.AxesGridBufferDC]
-    mov [AxesAndGridNeedRedraw], 0
+    stdcall DrawArea.DrawGrid, [DrawArea.AxesGridBufferDC]
 
     @@:
+    cmp [ShowAxes], 0
+    je .CopyToMainBuffer
+
+    stdcall DrawArea.DrawAxes, [DrawArea.AxesGridBufferDC]
+
+    .CopyToMainBuffer:
     invoke BitBlt, [DrawArea.MainBufferDC], 0, 0, [DrawArea.Width], [DrawArea.Height], [DrawArea.AxesGridBufferDC], 0, 0, SRCCOPY
 
     .DrawObjects:
@@ -298,22 +319,14 @@ proc DrawArea.DrawAxes hdc
 endp
 
 
-proc DrawArea.DrawAxisTicks uses edi esi ebx, hdc, AxisType
+proc DrawArea._GetAxisTicksCalculations, AxisType, pOutTotalTicksCount, pOutPrecision
     locals
         AxisLength dd ?
         TranslateValue dd ?
         PointStructureOffset dd ?
-
         Precision dd ?
-        StringBuffer db 32 dup(?)
-        PrevTextAlign dd ?
-        PrevFont dd ?
         Log10Length dd ?
         TotalTicksCount dd ?
-        CurrentTicksCount dd ?
-
-        CurrentTickMarkPoint POINT ?
-        CurrentTickLabelPoint POINT ?
     endl
 
     mov eax, [DrawArea.Width]
@@ -324,7 +337,7 @@ proc DrawArea.DrawAxisTicks uses edi esi ebx, hdc, AxisType
     xor edx, edx
     mov eax, [AxisType]
     cmp eax, DrawArea.XAxis
-    je .SaveOffsetValue
+    je @F
     cmp eax, DrawArea.YAxis
     jne .Return
 
@@ -334,17 +347,8 @@ proc DrawArea.DrawAxisTicks uses edi esi ebx, hdc, AxisType
     fld [Translate.y]
     fstp [TranslateValue]
 
-    .SaveOffsetValue:
-    mov [PointStructureOffset], edx
-
-    lea edi, [StringBuffer]
-    mov esi, [hdc]
-
-    neg edx
-    fld dword [Translate + 4 + edx]
-    fist dword [CurrentTickMarkPoint + 4 + edx]
-    fistp dword [CurrentTickLabelPoint + 4 + edx]
-    add dword [CurrentTickLabelPoint + 4 + edx], DrawArea.TickLabelDistanceFromAxis
+    @@:
+    push edx
 
     fild [MinDistanceBetweenTicks]
     fdiv [Scale]
@@ -363,6 +367,14 @@ proc DrawArea.DrawAxisTicks uses edi esi ebx, hdc, AxisType
     fchs
     fistp [Precision]
 
+    mov ecx, [pOutPrecision]
+    test ecx, ecx
+    jz @F
+
+    mov eax, [Precision]
+    mov [ecx], eax
+
+    @@:
     fstp [Log10Length]
 
     ; Let's call the value in st0 after this procedure "Pow10"
@@ -404,6 +416,14 @@ proc DrawArea.DrawAxisTicks uses edi esi ebx, hdc, AxisType
     call Math.Ceil
     fistp [TotalTicksCount]
 
+    mov ecx, [pOutTotalTicksCount]
+    test ecx, ecx
+    jz @F
+
+    mov eax, [TotalTicksCount]
+    mov [ecx], eax
+
+    @@:
     ; Starting number of steps
     fld [TranslateValue]
     fldz
@@ -430,8 +450,46 @@ proc DrawArea.DrawAxisTicks uses edi esi ebx, hdc, AxisType
     @@:
     fadd [TranslateValue]
 
+    .Return:
+    pop edx
+    ret
+endp
+
+
+proc DrawArea.DrawAxisTicks uses edi esi ebx, hdc, AxisType
+    locals
+        PointStructureOffset dd ?
+        Precision dd ?
+        StringBuffer db 32 dup(?)
+        PrevTextAlign dd ?
+        PrevFont dd ?
+        TotalTicksCount dd ?
+        CurrentTicksCount dd ?
+        CurrentTickMarkPoint POINT ?
+        CurrentTickLabelPoint POINT ?
+        hPen dd ?
+    endl
+
+    lea edi, [StringBuffer]
+    mov esi, [hdc]
+
+    invoke CreatePen, PS_SOLID, DrawArea.AxesWidth, DrawArea.AxesColor
+    mov [hPen], eax
+    invoke SelectObject, esi, eax
+
+    lea eax, [TotalTicksCount]
+    lea edx, [Precision]
+    stdcall DrawArea._GetAxisTicksCalculations, [AxisType], eax, edx
+    mov [PointStructureOffset], edx
+
     ; Move plane start coordinate to st0 from st1
     fxch
+
+    neg edx
+    fld dword [Translate + 4 + edx]
+    fist dword [CurrentTickMarkPoint + 4 + edx]
+    fistp dword [CurrentTickLabelPoint + 4 + edx]
+    add dword [CurrentTickLabelPoint + 4 + edx], DrawArea.TickLabelDistanceFromAxis
 
     invoke GetTextAlign, esi
     mov [PrevTextAlign], eax
@@ -479,17 +537,80 @@ proc DrawArea.DrawAxisTicks uses edi esi ebx, hdc, AxisType
 
         fadd st0, st2
         fxch
-        inc [CurrentTicksCount]
+        add [CurrentTicksCount], 1
         loop .DrawTicksLoop
 
     .Finish:
     invoke SetTextAlign, [PrevTextAlign]
     invoke SelectObject, esi, [PrevFont]
 
+    invoke GetStockObject, DC_PEN
+    invoke SelectObject, esi, eax
+    invoke DeleteObject, [hPen]
+
     fstp st0
     fstp st0
     fstp st0
     fstp st0
     .Return:
+    ret
+endp
+
+
+proc DrawArea.DrawGrid uses edi, hdc
+    locals
+        TotalGridLinesCount dd ?
+        CurrentCoordinate dd ?
+        hPen dd ?
+    endl
+
+    mov esi, [hdc]
+
+    invoke CreatePen, PS_SOLID, DrawArea.GridLinesWidth, DrawArea.GridLinesColor
+    mov [hPen], eax
+    invoke SelectObject, esi, eax
+
+    lea eax, [TotalGridLinesCount]
+    stdcall DrawArea._GetAxisTicksCalculations, DrawArea.XAxis, eax, NULL
+    mov ecx, [TotalGridLinesCount]
+    .DrawVeritcalLinesLoop:
+        push ecx
+
+        fist [CurrentCoordinate]
+        invoke MoveToEx, esi, [CurrentCoordinate], 0, NULL
+        invoke LineTo, esi, [CurrentCoordinate], [DrawArea.Height]
+
+        pop ecx
+        fadd st0, st2
+        loop .DrawVeritcalLinesLoop
+
+    fstp st0
+    fstp st0
+    fstp st0
+    fstp st0
+
+    lea eax, [TotalGridLinesCount]
+    stdcall DrawArea._GetAxisTicksCalculations, DrawArea.YAxis, eax, NULL
+    mov ecx, [TotalGridLinesCount]
+    .DrawHorizontalLinesLoop:
+        push ecx
+
+        fist [CurrentCoordinate]
+        invoke MoveToEx, esi, 0, [CurrentCoordinate], NULL
+        invoke LineTo, esi, [DrawArea.Width], [CurrentCoordinate]
+
+        pop ecx
+        fadd st0, st2
+        loop .DrawHorizontalLinesLoop
+
+    fstp st0
+    fstp st0
+    fstp st0
+    fstp st0
+
+    invoke GetStockObject, DC_PEN
+    invoke SelectObject, [hdc], eax
+    invoke DeleteObject, [hPen]
+
     ret
 endp
