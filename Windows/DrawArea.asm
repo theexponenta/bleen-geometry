@@ -321,6 +321,7 @@ endp
 
 proc DrawArea._GetAxisTicksCalculations, AxisType, pOutTotalTicksCount, pOutPrecision
     locals
+        MinAxisLength dd ?
         AxisLength dd ?
         TranslateValue dd ?
         PointStructureOffset dd ?
@@ -334,7 +335,6 @@ proc DrawArea._GetAxisTicksCalculations, AxisType, pOutTotalTicksCount, pOutPrec
     fld [Translate.x]
     fstp [TranslateValue]
 
-    xor edx, edx
     mov eax, [AxisType]
     cmp eax, DrawArea.XAxis
     je @F
@@ -343,18 +343,30 @@ proc DrawArea._GetAxisTicksCalculations, AxisType, pOutTotalTicksCount, pOutPrec
 
     mov eax, [DrawArea.Height]
     mov [AxisLength], eax
-    mov edx, 4
     fld [Translate.y]
     fstp [TranslateValue]
 
     @@:
+    mov edx, [AxisType]
+    shl edx, 2
     push edx
 
     fild [MinDistanceBetweenTicks]
     fdiv [Scale]
 
-    ; Trunc(Lg(AxisLength / Scale)) - 1
-    fild [AxisLength]
+    ; Minimum of height and width witout branching
+    mov eax, [DrawArea.Height]
+    mov ecx, [DrawArea.Width]
+    sub eax, ecx
+    cdq
+    add eax, ecx
+    xor eax, ecx
+    and eax, edx
+    xor eax, ecx
+    mov [MinAxisLength], eax
+
+    ; Trunc(Lg(MinAxisLength / Scale)) - 1
+    fild [MinAxisLength]
     fdiv [Scale]
     call Math.Log10
     fld1
