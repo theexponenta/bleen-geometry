@@ -14,8 +14,10 @@ DrawArea.Rect RECT ?
 DrawArea.MainPopupMenu.Handle dd ?
 DrawArea.MainPopupMenu.Commands.ShowAxes = 1
 DrawArea.MainPopupMenu.Commands.ShowGrid = 2
+DrawArea.MainPopupMenu.Commands.SnapToGrid = 3
 DrawArea.MainPopupMenu.Strings.ShowAxes du 'Show axes', 0
 DrawArea.MainPopupMenu.Strings.ShowGrid du 'Show grid', 0
+DrawArea.MainPopupMenu.Strings.SnapToGrid du 'Snap to grid', 0
 
 DrawArea.AxesTickFont dd ?
 DrawArea.AxesTickFontFamily du 'Impact', 0

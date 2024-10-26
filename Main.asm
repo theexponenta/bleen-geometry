@@ -641,15 +641,17 @@ section '.data' data readable writeable
 
   Translate POINT 0f, 0f
   Scale dq 1.0
-  ScaleStepCoefficient dq 1.1
+  ScaleStepCoefficient dq 1.1f
 
   InitialXWidth dd 30f
   MinDistanceBetweenTicks dd 50
+  MaxGridSnapDistance dd 15f
 
   CtrlKeyPressed dd 0
 
   ShowAxes dd 0
   ShowGrid dd 0
+  SnapToGrid dd 1
   AxesAndGridNeedRedraw dd 1
 
   MaxInt dd 2147483647

@@ -117,12 +117,21 @@ proc DrawArea.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
 
         @@:
         cmp eax, DrawArea.MainPopupMenu.Commands.ShowGrid
-        jne .Return_0
+        jne @F
         xor dword [ShowGrid], 1
         mov eax, [ShowGrid]
         shl eax, 3 ; because MF_CHECKED = 8
         invoke CheckMenuItem, [DrawArea.MainPopupMenu.Handle], DrawArea.MainPopupMenu.Commands.ShowGrid, eax
         mov [AxesAndGridNeedRedraw], 1
+        jmp .DrawMenu
+
+        @@:
+        cmp eax, DrawArea.MainPopupMenu.Commands.SnapToGrid
+        jne .Return_0
+        xor dword [SnapToGrid], 1
+        mov eax, [SnapToGrid]
+        shl eax, 3 ; because MF_CHECKED = 8
+        invoke CheckMenuItem, [DrawArea.MainPopupMenu.Handle], DrawArea.MainPopupMenu.Commands.SnapToGrid, eax
 
         .DrawMenu:
         invoke DrawMenuBar, [DrawArea.MainPopupMenu.Handle]
@@ -184,6 +193,7 @@ proc DrawArea.CreateMainPopupMenu uses ebx
 
    invoke AppendMenu, ebx, MF_STRING or MF_UNCHECKED, DrawArea.MainPopupMenu.Commands.ShowAxes, DrawArea.MainPopupMenu.Strings.ShowAxes
    invoke AppendMenu, ebx, MF_STRING or MF_UNCHECKED, DrawArea.MainPopupMenu.Commands.ShowGrid, DrawArea.MainPopupMenu.Strings.ShowGrid
+   invoke AppendMenu, ebx, MF_STRING or MF_CHECKED, DrawArea.MainPopupMenu.Commands.SnapToGrid, DrawArea.MainPopupMenu.Strings.SnapToGrid
    invoke DrawMenuBar, ebx
 
    ret
@@ -313,8 +323,172 @@ proc DrawArea.DrawAxes hdc
     stdcall Draw.Line, [hdc], [X], 0, [X], [Height], DrawArea.AxesWidth, DrawArea.AxesColor
     fstp st0
     stdcall DrawArea.DrawAxisTicks, [hdc], DrawArea.YAxis
+    fldz
 
     .Return:
+    fstp st0
+    ret
+endp
+
+
+proc DrawArea._GetAxisTicksStep
+    locals
+        MinAxisLength dd ?
+        Log10Length dd ?
+    endl
+
+    fild [MinDistanceBetweenTicks]
+    fdiv [Scale]
+
+    ; Minimum of height and width witout branching
+    mov eax, [DrawArea.Height]
+    mov ecx, [DrawArea.Width]
+    sub eax, ecx
+    cdq
+    add eax, ecx
+    xor eax, ecx
+    and eax, edx
+    xor eax, ecx
+    mov [MinAxisLength], eax
+
+    ; Trunc(Lg(MinAxisLength / Scale)) - 1
+    fild [MinAxisLength]
+    fdiv [Scale]
+    call Math.Log10
+    fld1
+    fsubp
+    call Math.Floor
+    fstp [Log10Length]
+
+    ; Let's call the value in st0 after this procedure "Pow10"
+    stdcall Math.Pow, 10f, [Log10Length]
+
+    fld st0 ; Copy Pow10, now Pow10 is in st0 and st1
+
+    ; Check Multiplier=1
+    fcomi st0, st2
+    jae @F
+
+    fadd st0, st1 ; Pow10*2
+    ; Check Multiplier=2
+    fcomi st0, st2
+    jae @F
+
+    fadd st0, st0 ; st0=Pow10*4
+    fadd st0, st1 ; st0=Pow10*5
+
+    @@:
+    fxch ; Move Pow10 to st0 from st1
+    fstp st0 ; Pop Pow10
+
+    fxch ; Move MinDistanceBetweenTicks / Scale to st0 from st1
+    fstp st0 ; Pop MinDistanceBetweenTicks / Scale
+
+    .Finish:
+    ; Precision
+    fld [Log10Length]
+    fldz
+    call Math.FPUMin
+    fchs
+
+    ret
+endp
+
+
+; Returns coordinates of nearist grid node: edx - x-coordinate, eax - y-coordinate
+proc DrawArea.GetNearestGridNode, X, Y
+    locals
+        NearestX dd ?
+        NearestY dd ?
+    endl
+
+    stdcall DrawArea._GetAxisTicksStep, DrawArea.XAxis
+    fstp st0 ; Pop precision
+
+    ; Start x coordinate
+    fld [Translate.x]
+    fchs
+    fdiv [Scale]
+    fdiv st0, st1
+    call Math.Ceil
+    fmul st0, st1
+
+    fld [X]
+    fsub st0, st1
+    fdiv st0, st2
+    fld st0
+    call Math.Ceil
+    fmul st0, st3
+    fadd st0, st2
+    fxch
+    call Math.Floor
+    fmul st0, st3
+    fadd st0, st2
+    fld [X]
+    fld st0
+    fsub st0, st3
+    fabs
+    fxch
+    fsub st0, st2
+    fabs
+    fcomip st0, st1
+    fstp st0
+    jae @F
+
+    fxch
+
+    @@:
+    fstp st0
+    fxch st2
+    fstp st0
+    fstp st0
+
+    stdcall DrawArea._GetAxisTicksStep, DrawArea.YAxis
+    fstp st0 ; Pop precision
+
+    fld [Translate.y]
+    fisub [DrawArea.Height]
+    fdiv [Scale]
+    fdiv st0, st1
+    call Math.Ceil
+    fmul st0, st1
+
+    fld [Y]
+    fsub st0, st1
+    fdiv st0, st2
+    fld st0
+    call Math.Ceil
+    fmul st0, st3
+    fadd st0, st2
+    fxch
+    call Math.Floor
+    fmul st0, st3
+    fadd st0, st2
+    fld [Y]
+    fld st0
+    fsub st0, st3
+    fabs
+    fxch
+    fsub st0, st2
+    fabs
+    fcomip st0, st1
+    fstp st0
+    jae @F
+
+    fxch
+
+    @@:
+    fstp st0
+    fxch st2
+    fstp st0
+    fstp st0
+
+    fstp [NearestY]
+    fstp [NearestX]
+
+    mov eax, [NearestY]
+    mov edx, [NearestX]
+
     ret
 endp
 
@@ -351,34 +525,9 @@ proc DrawArea._GetAxisTicksCalculations, AxisType, pOutTotalTicksCount, pOutPrec
     shl edx, 2
     push edx
 
-    fild [MinDistanceBetweenTicks]
-    fdiv [Scale]
+    stdcall DrawArea._GetAxisTicksStep
 
-    ; Minimum of height and width witout branching
-    mov eax, [DrawArea.Height]
-    mov ecx, [DrawArea.Width]
-    sub eax, ecx
-    cdq
-    add eax, ecx
-    xor eax, ecx
-    and eax, edx
-    xor eax, ecx
-    mov [MinAxisLength], eax
-
-    ; Trunc(Lg(MinAxisLength / Scale)) - 1
-    fild [MinAxisLength]
-    fdiv [Scale]
-    call Math.Log10
-    fld1
-    fsubp
-    call Math.Floor
-
-    fld st0
-    fldz
-    call Math.FPUMin
-    fchs
     fistp [Precision]
-
     mov ecx, [pOutPrecision]
     test ecx, ecx
     jz @F
@@ -387,32 +536,6 @@ proc DrawArea._GetAxisTicksCalculations, AxisType, pOutTotalTicksCount, pOutPrec
     mov [ecx], eax
 
     @@:
-    fstp [Log10Length]
-
-    ; Let's call the value in st0 after this procedure "Pow10"
-    stdcall Math.Pow, 10f, [Log10Length]
-
-    fld st0 ; Copy Pow10, now Pow10 is in st0 and st1
-
-    ; Check Multiplier=1
-    fcomi st0, st2
-    jae @F
-
-    fadd st0, st1 ; Pow10*2
-    ; Check Multiplier=2
-    fcomi st0, st2
-    jae @F
-
-    fadd st0, st0 ; st0=Pow10*4
-    fadd st0, st1 ; st0=Pow10*5
-
-    @@:
-    fxch ; Move Pow10 to st0 from st1
-    fstp st0 ; Pop Pow10
-
-    fxch ; Move MinDistanceBetweenTicks / Scale to st0 from st1
-    fstp st0 ; Pop MinDistanceBetweenTicks / Scale
-
     ; Step (screen)
     fld st0
     fmul [Scale]
@@ -437,6 +560,9 @@ proc DrawArea._GetAxisTicksCalculations, AxisType, pOutTotalTicksCount, pOutPrec
 
     @@:
     ; Starting number of steps
+    ; Can be negative, calculated as n = Ceil(LeftmostCoordintae / Step),
+    ; where LeftmostCoordinate = -Translate.x / Scale for X-axis
+    ; and   LeftmostCoordinate = (Translate.y - AxisLength) / Scale for Y-axis
     fld [TranslateValue]
     fldz
     cmp [AxisType], DrawArea.XAxis

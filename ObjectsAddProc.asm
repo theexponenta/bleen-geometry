@@ -15,6 +15,23 @@ proc Main.AddPoint uses ebx, X, Y, ParentObjectId
     mov [X], edx
     mov [Y], eax
 
+
+    mov eax, [ShowGrid]
+    and eax, [SnapToGrid]
+    jz @F
+
+    stdcall DrawArea.GetNearestGridNode, [X], [Y]
+    stdcall Math.Distance, [X], [Y], edx, eax
+    fmul [Scale]
+    fld [MaxGridSnapDistance]
+    fcomip st0, st1
+    fstp st0
+    jbe @F
+
+    mov [X], edx
+    mov [Y], eax
+
+    @@:
     lea ebx, [NewPoint]
     mov eax, [NextPointNum]
     stdcall Point.PointNumToName
