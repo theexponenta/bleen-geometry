@@ -575,7 +575,9 @@ proc Main.DeleteObjectById uses ebx esi, Id
 
     stdcall GeometryObject.IsDependableObjectType, esi
     test eax, eax
-    jz .Return
+    jnz .DeleteDependentObjects
+    cmp esi, OBJ_POLYGON
+    jne .Return
 
     .DeleteDependentObjects:
     cmp [Objects.Sizes.Length], 0
