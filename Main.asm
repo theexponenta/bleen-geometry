@@ -517,26 +517,39 @@ proc Main._MarkDependentObjectsToDelete uses ebx, Id
     .MarkObjectsToDeleteLoop:
         push edx ecx
         stdcall GeometryObject.DependsOnObject, [Id]
-        pop ecx edx
         test eax, eax
-        jz @F
+        jz .NextIteration
 
-        mov [ebx + GeometryObject.Id], 0
         movzx eax, [ebx + GeometryObject.Type]
         stdcall GeometryObject.IsDependableObjectType, eax
         test eax, eax
         jz @F
 
-        push edx ecx
         stdcall Main._MarkDependentObjectsToDelete, [ebx + GeometryObject.Id]
-        pop ecx edx
 
         @@:
+        stdcall GeometryObject.Destroy
+        mov [ebx + GeometryObject.Id], 0
+
+        .NextIteration:
+        pop ecx edx
         add ebx, [edx]
         add edx, 4
         loop .MarkObjectsToDeleteLoop
 
     .Return:
+    ret
+endp
+
+
+proc Main._DeleteObjectByIndex uses ebx, Index
+    mov ebx, Objects
+    stdcall HeterogenousVector.PtrByIndex, [Index]
+    mov ebx, eax
+    stdcall GeometryObject.Destroy
+    mov ebx, Objects
+    stdcall HeterogenousVector.DeleteByIndex, [Index]
+
     ret
 endp
 
@@ -558,8 +571,7 @@ proc Main.DeleteObjectById uses ebx esi, Id
         je .Return
 
         movzx esi, byte [edx + GeometryObject.Type]
-        mov ebx, Objects
-        stdcall HeterogenousVector.DeleteByIndex, eax
+        stdcall Main._DeleteObjectByIndex, eax
 
     stdcall GeometryObject.IsDependableObjectType, esi
     test eax, eax
@@ -580,7 +592,7 @@ proc Main.DeleteObjectById uses ebx esi, Id
         jne @F
 
         push eax ecx edx
-        stdcall HeterogenousVector.DeleteByIndex, eax
+        stdcall Main._DeleteObjectByIndex, eax
         pop edx ecx eax
         dec eax
 
@@ -687,7 +699,8 @@ section '.rsrc' resource data readable
              TOOL_CIRCLE_WITH_CENTER, LANG_NEUTRAL, circle_with_center_icon, \
              TOOL_LINE, LANG_NEUTRAL, line_icon, \
              TOOL_ELLIPSE, LANG_NEUTRAL, ellipse_icon, \
-             TOOL_POLYLINE,  LANG_NEUTRAL, polyline_icon
+             TOOL_POLYLINE, LANG_NEUTRAL, polyline_icon, \
+             TOOL_POLYGON, LANG_NEUTRAL, polygon_icon
 
     bitmap move_icon, 'icons/move.bmp'
     bitmap point_icon, 'icons/point.bmp'
@@ -696,3 +709,4 @@ section '.rsrc' resource data readable
     bitmap line_icon, 'icons/line_icon.bmp'
     bitmap ellipse_icon, 'icons/ellipse_icon.bmp'
     bitmap polyline_icon, 'icons/polyline_icon.bmp'
+    bitmap polygon_icon, 'icons/polygon_icon.bmp'

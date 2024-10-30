@@ -14,6 +14,7 @@ MainWindow.Toolbar.Buttons TBBUTTON 0, TOOL_MOVE, TBSTATE_ENABLED, TBSTYLE_CHECK
                            TBBUTTON 4, TOOL_LINE, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0, NULL
                            TBBUTTON 5, TOOL_ELLIPSE, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0, NULL
                            TBBUTTON 6, TOOL_POLYLINE, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0, NULL
+                           TBBUTTON 7, TOOL_POLYGON, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0, NULL
 
 MainWindow.Toolbar.ButtonsCount = ($ - MainWindow.Toolbar.Buttons) / sizeof.TBBUTTON
 

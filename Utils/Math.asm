@@ -419,6 +419,57 @@ proc Math.IntToStr uses edi, pBuffer
 endp
 
 
+proc Math.VectorProduct, X1, Y1, X2, Y2, X3, Y3, X4, Y4
+    fld [X2]
+    fsub [X1]
+    fld [Y4]
+    fsub [Y3]
+    fmulp
+
+    fld [X4]
+    fsub [X3]
+    fld [Y2]
+    fsub [Y1]
+    fmulp
+
+    fsubp
+
+    ret
+endp
+
+
+proc Math.Orientation, X1, Y1, X2, Y2, X3, Y3
+    fld [X2]
+    fsub [X1]
+    fld [Y3]
+    fsub [Y1]
+    fmulp
+
+    fld [X3]
+    fsub [X1]
+    fld [Y2]
+    fsub [Y1]
+    fmulp
+
+    fsubp
+
+    fldz
+    fcomip st0, st1
+    fstp st0
+
+    mov eax, 1
+    jb .Return
+
+    mov eax, -1
+    ja .Return
+
+    xor eax, eax
+
+    .Return:
+    ret
+endp
+
+
 ; st0 - number to convert
 proc Math.FloatToStr uses edi, pBuffer, Precision
     locals

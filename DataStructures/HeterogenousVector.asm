@@ -135,3 +135,20 @@ proc HeterogenousVector.DeleteByIndex uses edi, Index
     ret
 endp
 
+
+proc HeterogenousVector.PtrByIndex, Index
+    mov ecx, [Index]
+    mov eax, [ebx + HeterogenousVector.Ptr]
+    test ecx, ecx
+    jz .Return
+
+    mov edx, [ebx + HeterogenousVector.Sizes.Ptr]
+    .CountPtrLoop:
+        add eax, [edx]
+        add edx, 4
+        loop .CountPtrLoop
+
+    .Return:
+    ret
+endp
+

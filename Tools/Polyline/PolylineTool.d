@@ -7,6 +7,6 @@ PolylineTool.States.SelectPoints.Transitions dd WM_LBUTTONDOWN, PolylineTool.Sel
 
 PolylineTool.States.Transitions dd PolylineTool.States.SelectPoints.Transitions, 0
 
-Polyline.NextObjectIdBeforeTool dd ?
+PolylineTool.NextObjectIdBeforeTool dd ?
 PolylineTool.pTempPolyline dd 0
 

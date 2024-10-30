@@ -57,11 +57,11 @@ proc Main.DeleteLastPoint uses ebx
 endp
 
 
-proc Main.AddSegment uses ebx, Point1Id, Point2Id
+proc Main.AddSegment uses ebx, Point1Id, Point2Id, Width, Color
     local NewSegment Segment ?
 
     lea ebx, [NewSegment]
-    stdcall Segment.Create, [NextObjectId], 0, 0, [Point1Id], [Point2Id], GeometryObject.DefaultLineWidth, GeometryObject.DefaultLineColor
+    stdcall Segment.Create, [NextObjectId], 0, 0, [Point1Id], [Point2Id], [Width], [Color]
     stdcall Main.AddObject, ebx, sizeof.Segment
 
     ret
@@ -110,3 +110,15 @@ proc Main.AddPolyline uses ebx
 
     ret
 endp
+
+
+proc Main.AddPolygon uses ebx
+    local NewPolygon PolygonObj ?
+
+    lea ebx, [NewPolygon]
+    stdcall PolygonObj.Create, [NextObjectId], 0, 0, GeometryObject.DefaultLineWidth, PolygonObj.DefaultColor
+    stdcall Main.AddObject, ebx, sizeof.PolygonObj
+
+    ret
+endp
+

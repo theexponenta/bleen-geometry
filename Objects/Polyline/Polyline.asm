@@ -61,6 +61,8 @@ proc PolylineObj.Draw uses esi, hdc
     mov eax, esp
     invoke Polyline, [hdc], eax, [ebx + PolylineObj.PointsIds.Length]
 
+    invoke DeleteObject, [hPenSelected]
+
     @@:
     invoke CreatePen, PS_SOLID, [ebx + PolylineObj.Width], [ebx + PolylineObj.Color]
     mov [hPenMain], eax

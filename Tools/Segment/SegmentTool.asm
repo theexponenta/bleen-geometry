@@ -8,7 +8,7 @@ proc SegmentTool.SelectPoint1
 
     .AddSegment:
         mov eax, [eax + Point.Id]
-        stdcall Main.AddSegment, eax, 0
+        stdcall Main.AddSegment, eax, 0, GeometryObject.DefaultLineWidth, GeometryObject.DefaultLineColor
         mov [SegmentTool.pTempSegment], eax
 
     ret

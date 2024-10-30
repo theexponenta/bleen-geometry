@@ -76,6 +76,9 @@ proc GeometryObject.IsDependableObjectType, Type
     cmp eax, OBJ_POINT
     je .ReturnTrue
 
+    cmp eax, OBJ_SEGMENT
+    je .ReturnTrue
+
     xor eax, eax
     jmp .Return
 
@@ -89,10 +92,19 @@ endp
 
 proc GeometryObject.DependsOnObject, Id
     movzx eax, byte [ebx + GeometryObject.Type]
+
     cmp eax, OBJ_POLYLINE
     jne @F
 
     stdcall PolylineObj.DependsOnObject, [Id]
+    jmp .Return
+
+    @@:
+    cmp eax, OBJ_POLYGON
+    jne @F
+
+    stdcall PolygonObj.DependsOnObject, [Id]
+    jmp .Return
 
     @@:
     mov edx, Objects.DependencyObjectsIdsOffsets
@@ -119,6 +131,19 @@ proc GeometryObject.DependsOnObject, Id
 
     .ReturnTrue:
     mov eax, 1
+
+    .Return:
+    ret
+endp
+
+
+proc GeometryObject.Destroy
+    movzx eax, [ebx + GeometryObject.Type]
+
+    cmp eax, OBJ_POLYGON
+    jne .Return
+
+    call PolygonObj.Destroy
 
     .Return:
     ret

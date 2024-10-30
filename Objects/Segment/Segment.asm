@@ -91,8 +91,7 @@ endp
 
 ; edx - dX
 ; ecx - dY
-proc Segment.Move ; uses esi
-    ;call GeometryObject.Move
+proc Segment.Move uses esi
     mov esi, ebx
 
     mov eax, [esi + Segment.Point1Id]

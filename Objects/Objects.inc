@@ -6,4 +6,5 @@ include 'CircleWithCenter/CircleWithCenter.inc'
 include 'Line/Line.inc'
 include 'Ellipse/Ellipse.inc'
 include 'Polyline/Polyline.inc'
+include 'Polygon/Polygon.inc'
 

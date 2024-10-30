@@ -100,3 +100,11 @@ proc Vector.Clear
 endp
 
 
+proc Vector.Destroy
+    call Vector.Clear
+    mov [ebx + Vector.Capacity], 0
+    invoke HeapFree, [hProcessHeap], 0, [ebx + Vector.Ptr]
+    mov [ebx + Vector.Ptr], 0
+    ret
+endp
+

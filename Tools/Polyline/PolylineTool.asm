@@ -4,7 +4,7 @@ proc PolylineTool.SelectNextPoint uses ebx esi
     jne @F
 
     mov eax, [NextObjectId]
-    mov [Polyline.NextObjectIdBeforeTool], eax
+    mov [PolylineTool.NextObjectIdBeforeTool], eax
 
     mov ebx, PolylineTool.pTempPolyline
     stdcall Main.AddPolyline
@@ -51,10 +51,9 @@ proc PolylineTool.Cancel uses ebx
     je .Return
 
     mov ecx, [NextObjectId]
-    sub ecx, [Polyline.NextObjectIdBeforeTool]
+    sub ecx, [PolylineTool.NextObjectIdBeforeTool]
     sub ecx, 1 ; The polyline itself
 
-    @@:
     mov ebx, Points
     .DeletePointsLoop:
         stdcall Main.DeleteLastPoint
