@@ -603,6 +603,7 @@ proc DrawArea.DrawAxisTicks uses edi esi ebx, hdc, AxisType
         PrevFont dd ?
         TotalTicksCount dd ?
         CurrentTicksCount dd ?
+        CurrentTickValue dq ?
         CurrentTickMarkPoint POINT ?
         CurrentTickLabelPoint POINT ?
         hPen dd ?
@@ -649,7 +650,8 @@ proc DrawArea.DrawAxisTicks uses edi esi ebx, hdc, AxisType
         call Math.Round
         fmul st0, st4
 
-        stdcall Math.FloatToStr, edi, [Precision]
+        fst [CurrentTickValue]
+        cinvoke sprintf, edi, DrawArea.TickLabelFormat, dword [CurrentTickValue], dword [CurrentTickValue + 4]
         invoke lstrlenA, edi
         fstp st0
 
@@ -676,7 +678,8 @@ proc DrawArea.DrawAxisTicks uses edi esi ebx, hdc, AxisType
         fadd st0, st2
         fxch
         add [CurrentTicksCount], 1
-        loop .DrawTicksLoop
+        sub ecx, 1
+        jnz .DrawTicksLoop
 
     .Finish:
     invoke SetTextAlign, [PrevTextAlign]

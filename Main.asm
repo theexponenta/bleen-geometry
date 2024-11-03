@@ -681,13 +681,16 @@ section '.idata' import data readable writeable
           user32, 'USER32.DLL',\
           comctl32, 'COMCTL32.DLL', \
           gdi32, 'GDI32.DLL', \
-          gdiplus, 'GDIPLUS.dll'
+          gdiplus, 'GDIPLUS.dll', \
+          msvcrt, 'msvcrt.dll'
 
   include 'api\kernel32.inc'
-
   include 'api\user32.inc'
   include 'api\comctl32.inc'
   include 'api\gdi32.inc'
+
+  import msvcrt, \
+         sprintf, 'sprintf'
 
 
 section '.rsrc' resource data readable

@@ -21,6 +21,7 @@ DrawArea.MainPopupMenu.Strings.SnapToGrid du 'Snap to grid', 0
 
 DrawArea.AxesTickFont dd ?
 DrawArea.AxesTickFontFamily du 'Impact', 0
+DrawArea.TickLabelFormat db "%g", 0
 
 DrawArea.OffsetX = 0
 DrawArea.OffsetY = 40
