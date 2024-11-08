@@ -137,6 +137,38 @@ proc GeometryObject.DependsOnObject, Id
 endp
 
 
+proc GeometryObject.GetEditableProperties
+    movzx eax, byte [ebx + GeometryObject.Type]
+    dec eax
+    shl eax, 2
+    add eax, Objects.EditableProperties
+    mov eax, [eax]
+    ret
+endp
+
+
+; pNewName - Delphi-string
+proc GeometryObject.SetName uses esi edi, pNewName
+    mov eax, [ebx + GeometryObject.pName]
+    sub eax, 4
+    invoke HeapFree, [hProcessHeap], 0, eax
+
+    mov esi, [pNewName]
+    sub esi, 4
+    mov edi, [esi]
+    shl edi, 1 ; Unicode
+    add edi, 4 ; 4 bytes for length of string
+
+    invoke HeapAlloc, [hProcessHeap], HEAP_ZERO_MEMORY, edi
+    mov edx, eax
+    add edx, 4
+    mov [ebx + GeometryObject.pName], edx
+    invoke RtlMoveMemory, eax, esi, edi
+
+    ret
+endp
+
+
 proc GeometryObject.Destroy
     movzx eax, [ebx + GeometryObject.Type]
 

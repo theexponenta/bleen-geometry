@@ -1,5 +1,6 @@
 
 include 'GeometryObject.inc'
+include 'EditableProperties.inc'
 include 'Point/Point.inc'
 include 'Segment/Segment.inc'
 include 'CircleWithCenter/CircleWithCenter.inc'

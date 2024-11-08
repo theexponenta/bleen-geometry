@@ -16,7 +16,11 @@ Objects.MoveProcedures dd Point.Move, Segment.Move, CircleWithCenter.Move, Line.
 
 Objects.DependencyObjectsIdsOffsets dd 0, Segment.DependencyObjectsIdsOffsets, CircleWithCenter.DependencyObjectsIdsOffsets, \
                                           Line.DependencyObjectsIdsOffsets, EllipseObj.DependencyObjectsIdsOffsets, \
-                                          0  ; Polyline dependency points are not fixed, they are stored in vector,
-                                             ; so we defined a separate procedure PolylineObj.DependsOnObject
-                                          dd 0 ; The same story about polygon
+                                          0, \  ; Polyline dependency points are not fixed, they are stored in vector, so we defined a separate procedure PolylineObj.DependsOnObject
+                                          0 ; The same story about polygon
+
+
+Objects.EditableProperties dd Point.EditableProperties, Segment.EditableProperties, CircleWithCenter.EditableProperties, \
+                              Line.EditableProperties, EllipseObj.EditableProperties, PolylineObj.EditableProperties, \
+                              PolygonObj.EditableProperties
 

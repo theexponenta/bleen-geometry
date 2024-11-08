@@ -19,6 +19,10 @@ DrawArea.MainPopupMenu.Strings.ShowAxes du 'Show axes', 0
 DrawArea.MainPopupMenu.Strings.ShowGrid du 'Show grid', 0
 DrawArea.MainPopupMenu.Strings.SnapToGrid du 'Snap to grid', 0
 
+DrawArea.ObjectPopupMenu.Handle dd ?
+DrawArea.ObjectPopupMenu.Commands.Settings = 4
+DrawArea.ObjectPopupMenu.Strings.Settings du 'Settings', 0
+
 DrawArea.AxesTickFont dd ?
 DrawArea.AxesTickFontFamily du 'Impact', 0
 DrawArea.TickLabelFormat db "%g", 0

@@ -86,7 +86,7 @@ proc Point.Draw uses edi, hdc
     mov edx, [ebx + Point.pName]
     mov edx, [edx - 4]
 
-    invoke TextOut, edi, eax, ecx, [ebx + Point.pName], edx
+    invoke TextOutW, edi, eax, ecx, [ebx + Point.pName], edx
 
     .Return:
     ret

@@ -1,9 +1,9 @@
 
 struct Point GeometryObject
+    Size dd ?
+    Color dd ?
     X dd ?
     Y dd ?
-    Color dd ?
-    Size dd ?
     ParentObjectId dd ?
 ends
 
@@ -15,4 +15,6 @@ Point.SelectedBorderSize = 3
 
 ; Position of name text is calculated as (x + Point.NameTextOffset; y - Point.NameTextOffset)
 Point.NameTextOffset = 20
+
+Point.EditableProperties = PROP_NAME or PROP_CAPTION or PROP_COLOR or PROP_SIZE
 

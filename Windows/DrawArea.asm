@@ -74,6 +74,7 @@ proc DrawArea.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
         stdcall DrawArea.Clear, [DrawArea.AxesGridBufferDC]
 
         stdcall DrawArea.CreateMainPopupMenu
+        stdcall DrawArea.CreateObjectPopupMenu
 
         invoke CreateFont, DrawArea.AxisTickFontSize, 0, 0, 0, FW_EXTRALIGHT, FALSE, FALSE, FALSE, DEFAULT_CHARSET, \
                            OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY, VARIABLE_PITCH, NULL
@@ -106,32 +107,31 @@ proc DrawArea.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
     .Wmcommand:
         movzx eax, word [wparam]
 
+        cmp eax, DrawArea.ObjectPopupMenu.Commands.Settings
+        jne @F
+
+        stdcall ObjectSettingsWindow.EditObject, [ObjectSettingsWindow.pObject]
+        jmp .Return_0
+
+        @@:
         cmp eax, DrawArea.MainPopupMenu.Commands.ShowAxes
         jne @F
-        xor dword [ShowAxes], 1
-        mov eax, [ShowAxes]
-        shl eax, 3 ; because MF_CHECKED = 8
-        invoke CheckMenuItem, [DrawArea.MainPopupMenu.Handle], DrawArea.MainPopupMenu.Commands.ShowAxes, eax
-        mov [AxesAndGridNeedRedraw], 1
+
+        stdcall DrawArea.ToggleMainMenuCheckItem, DrawArea.MainPopupMenu.Commands.ShowAxes, ShowAxes
         jmp .DrawMenu
 
         @@:
         cmp eax, DrawArea.MainPopupMenu.Commands.ShowGrid
         jne @F
-        xor dword [ShowGrid], 1
-        mov eax, [ShowGrid]
-        shl eax, 3 ; because MF_CHECKED = 8
-        invoke CheckMenuItem, [DrawArea.MainPopupMenu.Handle], DrawArea.MainPopupMenu.Commands.ShowGrid, eax
-        mov [AxesAndGridNeedRedraw], 1
+
+        stdcall DrawArea.ToggleMainMenuCheckItem, DrawArea.MainPopupMenu.Commands.ShowGrid, ShowGrid
         jmp .DrawMenu
 
         @@:
         cmp eax, DrawArea.MainPopupMenu.Commands.SnapToGrid
         jne .Return_0
-        xor dword [SnapToGrid], 1
-        mov eax, [SnapToGrid]
-        shl eax, 3 ; because MF_CHECKED = 8
-        invoke CheckMenuItem, [DrawArea.MainPopupMenu.Handle], DrawArea.MainPopupMenu.Commands.SnapToGrid, eax
+
+        stdcall DrawArea.ToggleMainMenuCheckItem, DrawArea.MainPopupMenu.Commands.SnapToGrid, SnapToGrid
 
         .DrawMenu:
         invoke DrawMenuBar, [DrawArea.MainPopupMenu.Handle]
@@ -140,11 +140,27 @@ proc DrawArea.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
     .Wmrbuttondown:
         invoke GetWindowRect, [hwnd], DrawArea.Rect
 
+        movzx eax, word [lparam + 2]
+        call Math.IntToFloat
+        push eax
         movzx eax, word [lparam]
-        add eax, [DrawArea.Rect.left]
+        call Math.IntToFloat
+        push eax
+
+        stdcall Main.GetObjectOnPosition
+        mov ecx, [DrawArea.MainPopupMenu.Handle]
+        test eax, eax
+        jz @F
+
+        mov [ObjectSettingsWindow.pObject], eax
+        mov ecx, [DrawArea.ObjectPopupMenu.Handle]
+
+        @@:
+        movzx eax, word [lparam]
         movzx edx, word [lparam + 2]
+        add eax, [DrawArea.Rect.left]
         add edx, [DrawArea.Rect.top]
-        invoke TrackPopupMenu, [DrawArea.MainPopupMenu.Handle], TPM_RIGHTALIGN or TPM_TOPALIGN, eax, edx, 0, [hwnd], 0
+        invoke TrackPopupMenu, ecx, TPM_RIGHTALIGN or TPM_TOPALIGN, eax, edx, 0, [hwnd], 0
 
     .Wmlbuttondown:
     .Wmlbuttonup:
@@ -197,6 +213,32 @@ proc DrawArea.CreateMainPopupMenu uses ebx
    invoke DrawMenuBar, ebx
 
    ret
+endp
+
+
+proc DrawArea.ToggleMainMenuCheckItem, CommandId, pVarToToggle
+    mov eax, [pVarToToggle]
+    xor dword [eax], 1
+
+    mov eax, [eax]
+    shl eax, 3 ; because MF_CHECKED = 8
+    invoke CheckMenuItem, [DrawArea.MainPopupMenu.Handle], [CommandId], eax
+
+    mov [AxesAndGridNeedRedraw], 1
+    ret
+endp
+
+
+proc DrawArea.CreateObjectPopupMenu uses ebx
+    invoke CreatePopupMenu
+    mov [DrawArea.ObjectPopupMenu.Handle], eax
+    mov ebx, eax
+
+    invoke AppendMenu, ebx, MF_STRING or MF_UNCHECKED, DrawArea.ObjectPopupMenu.Commands.Settings, \
+                       DrawArea.ObjectPopupMenu.Strings.Settings
+    invoke DrawMenuBar, ebx
+
+    ret
 endp
 
 

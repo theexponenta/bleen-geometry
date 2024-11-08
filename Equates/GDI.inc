@@ -1,6 +1,9 @@
 
 GM_ADVANCED = 2
 
+DC_BRUSH = 18
+DC_PEN = 19
+
 
 struct tagXFORM
     eM11 dd ?

@@ -9,6 +9,7 @@ include 'DataStructures/LinkedList.inc'
 include 'Objects/Objects.inc'
 include 'ObjectsAddProc.asm'
 include 'Tools/Tools.inc'
+include 'Windows/ObjectSettings.inc'
 
 
 section '.text' code readable executable
@@ -39,6 +40,12 @@ proc WinMain
     mov ebx, Points
     stdcall Vector.Create, sizeof.Point, 0, 26
 
+    mov ebx, ObjectSettingsWindow.Controls
+    stdcall Vector.Create, sizeof.ObjectFieldInputControl, 0, ObjectSettingsWindow.Controls.InitialCapacity
+
+    mov ebx, ObjectSettingsWindow.TrackbarsValueControls
+    stdcall Vector.Create, sizeof.TrackbarValueControl, 0, ObjectSettingsWindow.TrackbarsValueControls.InitialCapacity
+
     invoke CreateSolidBrush, 0xFFFFFF
     mov [hbrWhite], eax
     invoke CreatePen, PS_SOLID, 1, 0xFFFFFF
@@ -65,6 +72,21 @@ proc WinMain
     mov [WindowClass.lpszClassName], DrawArea.wcexClass.ClassName
     mov eax, [hbrWhite]
     mov [WindowClass.hbrBackground], eax
+    invoke RegisterClassEx, WindowClass
+    test eax, eax
+    jz .Error
+
+    mov [WindowClass.lpfnWndProc], ObjectSettingsWindow.WindowProc
+    mov [WindowClass.lpszClassName], ObjectSettingsWindow.wcexClass.ClassName
+    mov [WindowClass.hbrBackground], COLOR_BTNFACE + 1
+    invoke RegisterClassEx, WindowClass
+    test eax, eax
+    jz .Error
+
+    mov [WindowClass.lpfnWndProc], ObjectSettingsWindow.ColorPickerWindowProc
+    mov [WindowClass.lpszClassName], ObjectSettingsWindow.ColorPickerWndClassName
+    invoke LoadCursor, NULL, IDC_HAND
+    mov [WindowClass.hCursor], eax
     invoke RegisterClassEx, WindowClass
     test eax, eax
     jz .Error
@@ -617,6 +639,7 @@ include 'DataStructures/HeterogenousVector.asm'
 include 'DataStructures/LinkedList.asm'
 include 'Windows/Main.asm'
 include 'Windows/DrawArea.asm'
+include 'Windows/ObjectSettings.asm'
 include 'Objects/Objects.asm'
 include 'Tools/Tools.asm'
 
@@ -627,13 +650,15 @@ section '.data' data readable writeable
   hProcessHeap dd ?
 
   Error du 'Error', 0
+
   TOOLBARCLASSNAME du TOOLBAR_CLASS, 0
+  TRACKBARCLASSNAME du TRACKBAR_CLASS, 0
+  STATICCLASSNAME du "static", 0
+  EDITCLASSNAME du "edit", 0
+  BUTTONCLASSNAME du "button", 0
 
   WindowClass WNDCLASSEX sizeof.WNDCLASSEX, 0, NULL, 0, 0, NULL, NULL, NULL, \
                          COLOR_BTNFACE + 1, NULL, NULL
-
-  DC_BRUSH = 18
-  DC_PEN = 19
 
   hpWhite dd ?
   hbrWhite dd ?
@@ -672,6 +697,7 @@ section '.data' data readable writeable
 
   include 'Windows/Main.d'
   include 'Windows/DrawArea.d'
+  include 'Windows/ObjectSettings.d'
   include 'Tools/Tools.d'
   include 'Objects/Objects.d'
 
@@ -682,7 +708,8 @@ section '.idata' import data readable writeable
           comctl32, 'COMCTL32.DLL', \
           gdi32, 'GDI32.DLL', \
           gdiplus, 'GDIPLUS.dll', \
-          msvcrt, 'msvcrt.dll'
+          msvcrt, 'msvcrt.dll', \
+          comdlg32, 'Comdlg32.dll'
 
   include 'api\kernel32.inc'
   include 'api\user32.inc'
@@ -691,6 +718,9 @@ section '.idata' import data readable writeable
 
   import msvcrt, \
          sprintf, 'sprintf'
+
+  import comdlg32, \
+         ChooseColorW, 'ChooseColorW'
 
 
 section '.rsrc' resource data readable
