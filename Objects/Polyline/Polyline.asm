@@ -74,7 +74,7 @@ proc PolylineObj.Draw uses esi, hdc
     invoke Polyline, [hdc], eax, ecx
     pop ecx
 
-    shl ecx, 2
+    shl ecx, 3
     add esp, ecx
 
     invoke DeleteObject, [hPenMain]

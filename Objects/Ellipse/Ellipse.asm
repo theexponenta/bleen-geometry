@@ -23,8 +23,8 @@ endp
 
 proc EllipseObj.Draw hdc
     locals
-        PrevWorldTranform tagXFORM ?
-        NewWorldTransform tagXFORM ?
+        PrevWorldTranform XFORM ?
+        NewWorldTransform XFORM ?
 
         Focus1 POINT ?
         Focus1Rotated POINT ?

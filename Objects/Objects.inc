@@ -8,4 +8,5 @@ include 'Line/Line.inc'
 include 'Ellipse/Ellipse.inc'
 include 'Polyline/Polyline.inc'
 include 'Polygon/Polygon.inc'
+include 'Parabola/Parabola.inc'
 

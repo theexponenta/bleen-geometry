@@ -122,3 +122,16 @@ proc Main.AddPolygon uses ebx
     ret
 endp
 
+
+proc Main.AddParabola uses ebx, FocusPointId, LineObjectId
+    local NewParabola Parabola ?
+
+    lea ebx, [NewParabola]
+    stdcall Parabola.Create, [NextObjectId], 0, 0, [FocusPointId], [LineObjectId], \
+                             GeometryObject.DefaultLineWidth, GeometryObject.DefaultLineColor
+
+    stdcall Main.AddObject, ebx, sizeof.Parabola
+
+    ret
+endp
+

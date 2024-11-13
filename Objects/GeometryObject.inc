@@ -6,6 +6,7 @@ OBJ_LINE = 4
 OBJ_ELLIPSE = 5
 OBJ_POLYLINE = 6
 OBJ_POLYGON = 7
+OBJ_PARABOLA = 8
 
 struct GeometryObject
     Id dd ?

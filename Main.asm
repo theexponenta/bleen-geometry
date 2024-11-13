@@ -735,7 +735,8 @@ section '.rsrc' resource data readable
              TOOL_LINE, LANG_NEUTRAL, line_icon, \
              TOOL_ELLIPSE, LANG_NEUTRAL, ellipse_icon, \
              TOOL_POLYLINE, LANG_NEUTRAL, polyline_icon, \
-             TOOL_POLYGON, LANG_NEUTRAL, polygon_icon
+             TOOL_POLYGON, LANG_NEUTRAL, polygon_icon, \
+             TOOL_PARABOLA, LANG_NEUTRAL, parabola_icon
 
     bitmap move_icon, 'icons/move.bmp'
     bitmap point_icon, 'icons/point.bmp'
@@ -745,3 +746,4 @@ section '.rsrc' resource data readable
     bitmap ellipse_icon, 'icons/ellipse_icon.bmp'
     bitmap polyline_icon, 'icons/polyline_icon.bmp'
     bitmap polygon_icon, 'icons/polygon_icon.bmp'
+    bitmap parabola_icon, 'icons/parabola_icon.bmp'
