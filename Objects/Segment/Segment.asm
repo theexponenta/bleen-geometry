@@ -30,12 +30,20 @@ proc Segment.Draw uses ebx edi, hdc
 
     mov eax, [ebx + Segment.Point1Id]
     call Main.FindPointById
+    mov edx, [eax + Point.X]
+    mov ecx, [eax + Point.Y]
+    mov [ebx + Segment.Point1.x], edx
+    mov [ebx + Segment.Point1.y], ecx
     stdcall Main.ToScreenPosition, [eax + Point.X], [eax + Point.Y]
     mov [X1], edx
     mov [Y1], eax
 
     mov eax, [ebx + Segment.Point2Id]
     call Main.FindPointById
+    mov edx, [eax + Point.X]
+    mov ecx, [eax + Point.Y]
+    mov [ebx + Segment.Point2.x], edx
+    mov [ebx + Segment.Point2.y], ecx
     stdcall Main.ToScreenPosition, [eax + Point.X], [eax + Point.Y]
     mov [X2], edx
     mov [Y2], eax
@@ -49,7 +57,7 @@ proc Segment.Draw uses ebx edi, hdc
     stdcall Draw.Line, [hdc], [X1], [Y1], [X2], [Y2], [SelectedWidth], GeometryObject.SelectedLineColor
 
     @@:
-    stdcall Draw.Line, [hdc], [X1], [Y1], [X2], [Y2], [ebx + Segment.Width], [ebx + Segment.Color]
+    stdcall Draw.Line, [hdc], [X1], [Y1], [X2], [Y2], GeometryObject.DefaultLineWidth, GeometryObject.DefaultLineColor
 
     .Return:
     ret
@@ -65,25 +73,12 @@ proc Segment.IsOnPosition uses edi, X, Y
         WidthScaled dd ?
     endl
 
-    mov eax, [ebx + Segment.Point1Id]
-    call Main.FindPointById
-    mov edx, [eax + Point.X]
-    mov [X1], edx
-    mov edx, [eax + Point.Y]
-    mov [Y1], edx
-
-    mov eax, [ebx + Segment.Point2Id]
-    call Main.FindPointById
-    mov edx, [eax + Point.X]
-    mov [X2], edx
-    mov edx, [eax + Point.Y]
-    mov [Y2], edx
-
     fild [ebx + Segment.Width]
     fdiv [Scale]
     fstp [WidthScaled]
 
-    stdcall Math.IsSegmentOnPosition, [X1] ,[Y1], [X2], [Y2], [X], [Y], [WidthScaled]
+    stdcall Math.IsSegmentOnPosition, [ebx + Segment.Point1.x], [ebx + Segment.Point1.y], [ebx + Segment.Point2.x], [ebx + Segment.Point2.y], \
+                                      [X], [Y], [WidthScaled]
 
     ret
 endp

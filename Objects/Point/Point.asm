@@ -19,6 +19,7 @@ proc Point.Create Id, pName, pCaption, X, Y, Color, Size, ParentObjectId
 
     mov eax, [ParentObjectId]
     mov [ebx + Point.ParentObjectId], eax
+    mov [ebx + Point.IntersectionId], 0
 
     ret
 endp
@@ -153,6 +154,9 @@ proc Point.Move
         delta dd ?
     endl
 
+    cmp [ebx + Point.IntersectionId], 0
+    jne .Return
+
     mov [delta], edx
     fld [delta]
     fadd [ebx + Point.X]
@@ -162,6 +166,7 @@ proc Point.Move
     fadd [ebx + Point.Y]
     fstp [ebx + Point.Y]
 
+    .Return:
     ret
 endp
 

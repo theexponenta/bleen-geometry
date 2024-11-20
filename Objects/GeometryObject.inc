@@ -7,11 +7,14 @@ OBJ_ELLIPSE = 5
 OBJ_POLYLINE = 6
 OBJ_POLYGON = 7
 OBJ_PARABOLA = 8
+OBJ_INTERSECTION = 9
+OBJ_ANGLE_BISECTOR = 10
 
 struct GeometryObject
     Id dd ?
     Type db ?
     IsSelected db ?
+    IsHidden db ?
     AttachedPointsIds Vector ?
     pName dd ? ; Delphi-string
     pCaption dd ? ; Delphi-string

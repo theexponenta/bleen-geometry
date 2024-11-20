@@ -61,6 +61,30 @@ proc Math.FPUMin
 endp
 
 
+; If st0 < st1, swaps st0 and st1
+proc Math.FPUSwapMax
+    fcomi st0, st1
+    jae .Return
+
+    fxch st1
+
+    .Return:
+    ret
+endp
+
+
+; If st0 > st1, swaps st0 and st1
+proc Math.FPUSwapMin
+    fcomi st0, st1
+    jbe .Return
+
+    fxch st1
+
+    .Return:
+    ret
+endp
+
+
 ; eax - integer number
 proc Math.IntToFloat
    locals
@@ -469,3 +493,81 @@ proc Math.Orientation, X1, Y1, X2, Y2, X3, Y3
     ret
 endp
 
+
+; st0 - Y-coordinate of intersection point
+; st1 - X-coordinate of intersection point
+proc Math.IntersectLines, X1, Y1, X2, Y2, X3, Y3, X4, Y4
+    fld [Y2]
+    fsub [Y1]
+    fld [X2]
+    fsub [X1]
+    fdivp
+
+    fld [Y4]
+    fsub [Y3]
+    fld [X4]
+    fsub [X3]
+    fdivp
+
+    fld st1
+    fmul [X1]
+    fld st1
+    fmul [X3]
+    fsubp
+
+    fadd [Y3]
+    fsub [Y1]
+
+    fld st2
+    fsub st0, st2
+    fdivp
+
+    fld st0
+    fsub [X1]
+    fmul st0, st3
+    fadd [Y1]
+
+    fxch st2
+    fstp st0
+    fxch st2
+    fstp st0
+
+    ret
+endp
+
+
+proc Math.IsPointInRectangle, X, Y, Left, Top, Right, Bottom
+    xor eax, eax
+
+    fld [Left]
+    fld [Right]
+    fld [X]
+
+    fcomi st0, st1
+    ja .Return
+
+    fcomi st0, st2
+    jb .Return
+
+    fstp st0
+    fstp st0
+    fstp st0
+
+    fld [Bottom]
+    fld [Top]
+    fld [Y]
+
+    fcomi st0, st1
+    ja .Return
+
+    fcomi st0, st2
+    jb .Return
+
+    mov eax, 1
+
+    .Return:
+    fstp st0
+    fstp st0
+    fstp st0
+    ret
+endp

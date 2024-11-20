@@ -9,4 +9,6 @@ include 'Ellipse/Ellipse.inc'
 include 'Polyline/Polyline.inc'
 include 'Polygon/Polygon.inc'
 include 'Parabola/Parabola.inc'
+include 'Intersection/Intersection.inc'
+include 'AngleBisector/AngleBisector.inc'
 

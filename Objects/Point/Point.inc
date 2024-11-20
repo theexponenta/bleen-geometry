@@ -5,10 +5,12 @@ struct Point GeometryObject
     X dd ?
     Y dd ?
     ParentObjectId dd ?
+    IntersectionId dd ?
 ends
 
 
 Point.DefaultColor = 0x00C06515
+Point.IntersectionDefaultColor = 0x616161
 Point.DefaultSize = 7
 Point.BorderSize = 1
 Point.SelectedBorderSize = 3

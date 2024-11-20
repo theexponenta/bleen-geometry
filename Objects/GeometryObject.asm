@@ -13,6 +13,7 @@ proc GeometryObject.Create uses ebx, Id, Type, pName, pCaption
     mov [ebx + GeometryObject.pCaption], eax
 
     mov [ebx + GeometryObject.IsSelected], 0
+    mov [ebx + GeometryObject.IsHidden], 0
 
     add ebx, GeometryObject.AttachedPointsIds
     stdcall Vector.Create, 4, 0, GeometryObject.AttachedPointsIds.DefaultCapacity
@@ -72,18 +73,39 @@ endp
 
 
 proc GeometryObject.IsDependableObjectType, Type
-    mov eax, [Type]
-    cmp eax, OBJ_POINT
-    je .ReturnTrue
+    mov edx, [Type]
+    mov eax, 1
 
-    cmp eax, OBJ_SEGMENT
-    je .ReturnTrue
+    cmp edx, OBJ_POINT
+    je .Return
+
+    cmp edx, OBJ_SEGMENT
+    je .Return
+
+    cmp edx, OBJ_INTERSECTION
+    je .Return
 
     xor eax, eax
-    jmp .Return
 
-    .ReturnTrue:
+    .Return:
+    ret
+endp
+
+
+proc GeometryObject.IsLineObjectType, Type
+    mov edx, [Type]
     mov eax, 1
+
+    cmp edx, OBJ_LINE
+    je .Return
+
+    cmp edx, OBJ_SEGMENT
+    je .Return
+
+    cmp edx, OBJ_ANGLE_BISECTOR
+    je .Return
+
+    xor eax, eax
 
     .Return:
     ret
@@ -104,6 +126,13 @@ proc GeometryObject.DependsOnObject, Id
     jne @F
 
     stdcall PolygonObj.DependsOnObject, [Id]
+    jmp .Return
+
+    @@:
+    cmp eax, OBJ_INTERSECTION
+    jne @F
+
+    stdcall Intersection.DependsOnObject, [Id]
     jmp .Return
 
     @@:
@@ -180,3 +209,4 @@ proc GeometryObject.Destroy
     .Return:
     ret
 endp
+

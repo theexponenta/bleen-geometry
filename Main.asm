@@ -529,7 +529,34 @@ proc Main.GetObjectIndexById uses ebx edi, Id
 endp
 
 
+proc Main._MarkDependtendPointsToDelete uses ebx, Id
+    mov ecx, [Points.Length]
+    test ecx, ecx
+    jz .Return
+
+    mov ebx, [Points.Ptr]
+    .MarkPointsLoop:
+        push ecx
+
+        stdcall GeometryObject.DependsOnObject, [Id]
+        test eax, eax
+        jz @F
+
+        mov [ebx + Point.Id], 0
+
+        @@:
+        pop ecx
+        add ebx, sizeof.Point
+        loop .MarkPointsLoop
+
+    .Return:
+    ret
+endp
+
+
 proc Main._MarkDependentObjectsToDelete uses ebx, Id
+    stdcall Main._MarkDependtendPointsToDelete, [Id]
+
     mov ecx, [Objects.Sizes.Length]
     test ecx, ecx
     jz .Return
@@ -576,43 +603,65 @@ proc Main._DeleteObjectByIndex uses ebx, Index
 endp
 
 
-proc Main.DeleteObjectById uses ebx esi, Id
+proc Main.DeleteObjectById uses ebx esi edi, Id
+    locals
+        ObjectIndex dd ?
+        IsPoint db ?
+    endl
+
+    mov [IsPoint], 0
     mov eax, [Id]
     stdcall Main.FindPointIndexById
     cmp eax, -1
     je .TryDeleteAnotherObject
 
-    mov ebx, Points
+    mov [IsPoint], 1
+    mov [ObjectIndex], eax
     mov esi, OBJ_POINT
-    stdcall Vector.DeleteByIndex, eax
-    jmp .DeleteDependentObjects
+    jmp @F
 
     .TryDeleteAnotherObject:
-        stdcall Main.GetObjectIndexById, [Id]
-        cmp eax, -1
-        je .Return
+    stdcall Main.GetObjectIndexById, [Id]
+    cmp eax, -1
+    je .Return
 
-        movzx esi, byte [edx + GeometryObject.Type]
-        stdcall Main._DeleteObjectByIndex, eax
+    mov [ObjectIndex], eax
+    movzx esi, byte [edx + GeometryObject.Type]
 
+    @@:
     stdcall GeometryObject.IsDependableObjectType, esi
     test eax, eax
-    jnz .DeleteDependentObjects
+    jnz .MarkDependentObjects
     cmp esi, OBJ_POLYGON
-    jne .Return
+    jne .DeleteRequestedObject
 
-    .DeleteDependentObjects:
+    .MarkDependentObjects:
     cmp [Objects.Sizes.Length], 0
-    je .Return
+    je .DeleteRequestedObject
     stdcall Main._MarkDependentObjectsToDelete, [Id]
 
+    .DeleteRequestedObject:
+    cmp [IsPoint], 0
+    je @F
+
+    mov ebx, Points
+    stdcall Vector.DeleteByIndex, [ObjectIndex]
+    jmp .DeleteMarkedObjects
+
+    @@:
+    stdcall Main._DeleteObjectByIndex, [ObjectIndex]
+
+    .DeleteMarkedObjects:
     mov ecx, [Objects.Sizes.Length]
-    mov esi, [Objects.Ptr]
+    test ecx, ecx
+    jz .DeleteMarkedPoints
+
+    mov edi, [Objects.Ptr]
     mov edx, [Objects.Sizes.Ptr]
     mov ebx, Objects
     xor eax, eax
     .DeleteMarkedObjectsLoop:
-        cmp [esi + GeometryObject.Id], 0
+        cmp [edi + GeometryObject.Id], 0
         jne @F
 
         push eax ecx edx
@@ -621,10 +670,32 @@ proc Main.DeleteObjectById uses ebx esi, Id
         dec eax
 
         @@:
-        add esi, [edx]
+        add edi, [edx]
         add edx, 4
         inc eax
         loop .DeleteMarkedObjectsLoop
+
+    .DeleteMarkedPoints:
+    mov ecx, [Points.Length]
+    test ecx, ecx
+    jz .Return
+
+    mov edi, [Points.Ptr]
+    mov ebx, Points
+    xor esi, esi
+    .DeleteMarkedPointsLoop:
+        cmp [edi + Point.Id], 0
+        jne @F
+
+        push ecx
+        stdcall Vector.DeleteByIndex, esi
+        pop ecx
+        sub esi, 1
+
+        @@:
+        add edi, sizeof.Point
+        add esi, 1
+        loop .DeleteMarkedPointsLoop
 
     .Return:
     ret
@@ -736,7 +807,9 @@ section '.rsrc' resource data readable
              TOOL_ELLIPSE, LANG_NEUTRAL, ellipse_icon, \
              TOOL_POLYLINE, LANG_NEUTRAL, polyline_icon, \
              TOOL_POLYGON, LANG_NEUTRAL, polygon_icon, \
-             TOOL_PARABOLA, LANG_NEUTRAL, parabola_icon
+             TOOL_PARABOLA, LANG_NEUTRAL, parabola_icon, \
+             TOOL_INTERSECTION, LANG_NEUTRAL, intersection_icon, \
+             TOOL_ANGLE_BISECTOR, LANG_NEUTRAL, angle_bisector_icon
 
     bitmap move_icon, 'icons/move.bmp'
     bitmap point_icon, 'icons/point.bmp'
@@ -747,3 +820,5 @@ section '.rsrc' resource data readable
     bitmap polyline_icon, 'icons/polyline_icon.bmp'
     bitmap polygon_icon, 'icons/polygon_icon.bmp'
     bitmap parabola_icon, 'icons/parabola_icon.bmp'
+    bitmap intersection_icon, 'icons/intersection_icon.bmp'
+    bitmap angle_bisector_icon, 'icons/angle_bisector_icon.bmp'

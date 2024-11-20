@@ -92,36 +92,12 @@ proc Line._YIntersection
 endp
 
 
-proc Line.Draw uses edi, hdc
+proc Line.GetLineBorderPoints uses edi, P1.x, P1.y, P2.x, P2.y, pBorderPoint1, pBorderPoint2
     locals
-        P1 POINT ?
-        P2 POINT ?
-
         P1Border POINT ?
         P2Border POINT ?
-
-        SelectedWidth dd ?
     endl
 
-    mov eax, [ebx + Line.Point1Id]
-    call Main.FindPointById
-    stdcall Main.ToScreenPosition, [eax + Point.X], [eax + Point.Y]
-    mov [P1.x], edx
-    mov [P1.y], eax
-
-    mov eax, [ebx + Line.Point2Id]
-    call Main.FindPointById
-    stdcall Main.ToScreenPosition, [eax + Point.X], [eax + Point.Y]
-    mov [P2.x], edx
-    mov [P2.y], eax
-
-    ; If P1 and P2 are the same points, just don't draw a line
-    cmp edx, [P1.x]
-    jne @F
-    cmp eax, [P1.y]
-    je .Return
-
-    @@:
     ; X2*Y1 - X1*Y2
     fld [P2.x]
     fmul [P1.y]
@@ -190,6 +166,57 @@ proc Line.Draw uses edi, hdc
     fstp st0
     fstp st0
 
+    mov edi, [pBorderPoint1]
+    mov eax, [P1Border.x]
+    mov [edi + POINT.x], eax
+    mov eax, [P1Border.y]
+    mov [edi + POINT.y], eax
+
+    mov edi, [pBorderPoint2]
+    mov eax, [P2Border.x]
+    mov [edi + POINT.x], eax
+    mov eax, [P2Border.y]
+    mov [edi + POINT.y], eax
+
+    ret
+endp
+
+
+proc Line.Draw uses edi, hdc
+    locals
+        P1 POINT ?
+        P2 POINT ?
+
+        P1Border POINT ?
+        P2Border POINT ?
+
+        SelectedWidth dd ?
+    endl
+
+    lea eax, [P1Border]
+    lea edx, [P2Border]
+    push edx eax
+
+    mov eax, [ebx + Line.Point1Id]
+    call Main.FindPointById
+    mov edx, [eax + Point.X]
+    mov ecx, [eax + Point.Y]
+    mov [ebx + Line.Point1.x], edx
+    mov [ebx + Line.Point1.y], ecx
+    stdcall Main.ToScreenPosition, edx, ecx
+    push eax edx
+
+    mov eax, [ebx + Line.Point2Id]
+    call Main.FindPointById
+    mov edx, [eax + Point.X]
+    mov ecx, [eax + Point.Y]
+    mov [ebx + Line.Point2.x], edx
+    mov [ebx + Line.Point2.y], ecx
+    stdcall Main.ToScreenPosition, edx, ecx
+    push eax edx
+
+    stdcall Line.GetLineBorderPoints ; All arguments are pushed above
+
     cmp [ebx + Line.IsSelected], 0
     je @F
 
@@ -207,19 +234,8 @@ endp
 
 
 proc Line.IsOnPosition X, Y
-    push [Y]
-    push [X]
-
-    mov eax, [ebx + Line.Point1Id]
-    call Main.FindPointById
-    push [eax + Point.Y] [eax + Point.X]
-
-    mov eax, [ebx + Line.Point2Id]
-    call Main.FindPointById
-    push [eax + Point.Y] [eax + Point.X]
-
     ; All the arguments are pushed above
-    stdcall Math.DistanceLinePoint
+    stdcall Math.DistanceLinePoint, [ebx + Line.Point1.x], [ebx + Line.Point1.y], [ebx + Line.Point2.x], [ebx + Line.Point2.y], [X], [Y]
 
     fild [ebx + Line.Width]
     fdiv [Scale]

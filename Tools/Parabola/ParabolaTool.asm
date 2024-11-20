@@ -11,6 +11,8 @@ proc ParabolaTool.SelectDirectrix
     cmp edx, OBJ_LINE
     je @F
     cmp edx, OBJ_SEGMENT
+    je @F
+    cmp edx, OBJ_ANGLE_BISECTOR
     jne .Return
 
     @@:
@@ -34,6 +36,7 @@ proc ParabolaTool.SelectFocus uses esi
     mov esi, [ParabolaTool.pDirectrixLineObject]
     stdcall Main.AddParabola, [eax + Point.Id], [esi + GeometryObject.Id]
     mov byte [esi + GeometryObject.IsSelected], 0
+    mov [ParabolaTool.pDirectrixLineObject], 0
     mov [CurrentStateId], ParabolaTool.States.SelectDirectrix
     mov [ParabolaTool.NextObjectIdBeforeTool], 0
 
@@ -43,5 +46,15 @@ endp
 
 
 proc ParabolaTool.Cancel
+    mov eax, [ParabolaTool.pDirectrixLineObject]
+    test eax, eax
+    je @F
+
+    mov byte [eax + GeometryObject.IsSelected], 0
+    mov [ParabolaTool.pDirectrixLineObject], 0
+    mov [ParabolaTool.NextObjectIdBeforeTool], 0
+
+    @@:
+    mov [CurrentStateId], ParabolaTool.States.SelectDirectrix
     ret
 endp

@@ -53,20 +53,15 @@ proc Parabola.Draw uses ebx, hDC
     stdcall Main.GetObjectById, [ebx + Parabola.LineObjectId]
     mov [pLineObject], eax
 
-    mov eax, [eax + Line.Point1Id]
-    stdcall Main.FindPointById
-    mov edx, [eax + Point.X]
+    mov edx, [eax + Line.Point1.x]
+    mov ecx, [eax + Line.Point1.y]
     mov [DirectrixPoint1.x], edx
-    mov edx, [eax + Point.Y]
-    mov [DirectrixPoint1.y], edx
+    mov [DirectrixPoint1.y], ecx
 
-    mov eax, [pLineObject]
-    mov eax, [eax + Line.Point2Id]
-    stdcall Main.FindPointById
-    mov edx, [eax + Point.X]
+    mov edx, [eax + Line.Point2.x]
+    mov ecx, [eax + Line.Point2.y]
     mov [DirectrixPoint2.x], edx
-    mov edx, [eax + Point.Y]
-    mov [DirectrixPoint2.y], edx
+    mov [DirectrixPoint2.y], ecx
 
     fld [DirectrixPoint2.y]
     fsub [DirectrixPoint1.y]
@@ -83,7 +78,7 @@ proc Parabola.Draw uses ebx, hDC
     fchs
     fstp [NewWorldTransform.eM21]
 
-    invoke CreatePen, PS_SOLID, [ebx + EllipseObj.Width], [ebx + EllipseObj.Color]
+    invoke CreatePen, PS_SOLID, [ebx + Parabola.Width], [ebx + Parabola.Color]
     mov [hPenMain], eax
     invoke SelectObject, [hDC], eax
 
@@ -266,24 +261,10 @@ proc Parabola.IsOnPosition X, Y
     stdcall Main.FindPointById
     stdcall Math.Distance, [X], [Y], [eax + Point.X], [eax + Point.Y]
 
-    push [Y]
-    push [X]
-
     stdcall Main.GetObjectById, [ebx + Parabola.LineObjectId]
     mov [pLineObject], eax
 
-    mov eax, [eax + Line.Point1Id]
-    stdcall Main.FindPointById
-    push [eax + Point.Y]
-    push [eax + Point.X]
-
-    mov eax, [pLineObject]
-    mov eax, [eax + Line.Point2Id]
-    stdcall Main.FindPointById
-    push [eax + Point.Y]
-    push [eax + Point.X]
-
-    stdcall Math.DistanceLinePoint ; All the arguments are pushed above
+    stdcall Math.DistanceLinePoint, [eax + Line.Point1.x], [eax + Line.Point1.y], [eax + Line.Point2.x], [eax + Line.Point2.y], [X], [Y]
 
     fsubp
     fabs

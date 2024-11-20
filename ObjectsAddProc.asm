@@ -6,15 +6,12 @@ proc Main.AddObject pObject, ObjectSize
     ret
 endp
 
-
+; X, Y - SCREEN!!! coordinates
 ; Returns pointer to added Point object
-proc Main.AddPoint uses ebx, X, Y, ParentObjectId
-    local NewPoint Point ?
-
+proc Main.AddPoint, X, Y, ParentObjectId
     stdcall Main.ToPlanePosition, [X], [Y]
     mov [X], edx
     mov [Y], eax
-
 
     mov eax, [ShowGrid]
     and eax, [SnapToGrid]
@@ -32,10 +29,21 @@ proc Main.AddPoint uses ebx, X, Y, ParentObjectId
     mov [Y], eax
 
     @@:
+    stdcall Main._AddPoint, [X], [Y], [ParentObjectId], Point.DefaultColor, Point.DefaultSize
+
+    ret
+endp
+
+
+; X, Y - plane coordinates
+; Returns pointer to added Point object
+proc Main._AddPoint uses ebx, X, Y, ParentObjectId, Color, Width
+    local NewPoint Point ?
+
     lea ebx, [NewPoint]
     mov eax, [NextPointNum]
     stdcall Point.PointNumToName
-    stdcall Point.Create, [NextObjectId], eax, 0, [X], [Y], Point.DefaultColor, Point.DefaultSize, [ParentObjectId]
+    stdcall Point.Create, [NextObjectId], eax, 0, [X], [Y], [Color],[Width], [ParentObjectId]
 
     push ebx
     mov ebx, Points
@@ -69,7 +77,7 @@ endp
 
 
 proc Main.AddLine uses ebx, Point1Id, Point2Id
-    local NewLine Segment ?
+    local NewLine Line ?
 
     lea ebx, [NewLine]
     stdcall Line.Create, [NextObjectId], 0, 0, [Point1Id], [Point2Id], GeometryObject.DefaultLineWidth, GeometryObject.DefaultLineColor
@@ -135,3 +143,92 @@ proc Main.AddParabola uses ebx, FocusPointId, LineObjectId
     ret
 endp
 
+
+proc Main.AddIntersection uses ebx, Object1Id, Object2Id
+    local NewIntersection Intersection ?
+
+    lea ebx, [NewIntersection]
+    stdcall Intersection.Create, [NextObjectId], [Object1Id], [Object2Id]
+
+    stdcall Main.AddObject, ebx, sizeof.Intersection
+
+    ret
+endp
+
+
+proc Main.SetIntersectionPoint uses esi edi, IntersectionId, PointIndex, X, Y
+    mov ecx, [Points.Length]
+    test ecx, ecx
+    jz .Return
+
+    mov esi, [Points.Ptr]
+    mov edx, [IntersectionId]
+    mov edi, [PointIndex]
+    xor eax, eax
+    .PointsLoop:
+        cmp [esi + Point.IntersectionId], edx
+        jne .NextIteration
+
+        add eax, 1
+        cmp eax, edi
+        je .SetPoint
+
+        .NextIteration:
+        add esi, sizeof.Point
+        loop .PointsLoop
+
+    stdcall Main._AddPoint, [X], [Y], 0, Point.IntersectionDefaultColor, Point.DefaultSize
+    mov edx, [IntersectionId]
+    mov [eax + Point.IntersectionId], edx
+    jmp .Return
+
+    .SetPoint:
+    mov eax, [X]
+    mov [esi + Point.X], eax
+    mov edx, [Y]
+    mov [esi + Point.Y], edx
+    mov [esi + Point.IsHidden], 0
+
+    .Return:
+    ret
+endp
+
+
+proc Main.HideIntersectionPoint uses esi edi, IntersectionId, PointIndex
+    mov ecx, [Points.Length]
+    test ecx, ecx
+    jz .Return
+
+    mov esi, [Points.Ptr]
+    mov edx, [IntersectionId]
+    mov edi, [PointIndex]
+    xor eax, eax
+    .PointsLoop:
+        cmp [esi + Point.IntersectionId], edx
+        jne .NextIteration
+
+        add eax, 1
+        cmp eax, edi
+        jne .NextIteration
+
+        mov [esi + Point.IsHidden], 1
+        jmp .Return
+
+        .NextIteration:
+        add esi, sizeof.Point
+        loop .PointsLoop
+
+    .Return:
+    ret
+endp
+
+
+proc Main.AddAngleBisector uses ebx, Point1Id, Point2Id, Point3Id
+    local NewAngleBisector AngleBisector ?
+
+    lea ebx, [NewAngleBisector]
+    stdcall AngleBisector.Create, [NextObjectId], 0, 0, [Point1Id], [Point2Id], [Point3Id], GeometryObject.DefaultLineWidth, GeometryObject.DefaultLineColor
+    stdcall Main.AddObject, ebx, sizeof.AngleBisector
+
+    ret
+endp
