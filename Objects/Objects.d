@@ -5,19 +5,20 @@ include 'CircleWithCenter/CircleWithCenter.d'
 include 'Ellipse/Ellipse.d'
 include 'Parabola/Parabola.d'
 include 'AngleBisector/AngleBisector.d'
+include 'Perpendicular/Perpendicular.d'
 include 'GeometryObject.d'
 
 
 Objects.DrawProcedures dd Point.Draw, Segment.Draw, CircleWithCenter.Draw, Line.Draw, EllipseObj.Draw, PolylineObj.Draw, PolygonObj.Draw, \
-                          Parabola.Draw, Intersection.Draw, AngleBisector.Draw
+                          Parabola.Draw, Intersection.Draw, AngleBisector.Draw, Perpendicular.Draw
 
 Objects.IsOnPositionProcedures dd Point.IsOnPosition, Segment.IsOnPosition, CircleWithCenter.IsOnPosition, \
                                   Line.IsOnPosition, EllipseObj.IsOnPosition, PolylineObj.IsOnPosition, \
                                   PolygonObj.IsOnPosition, Parabola.IsOnPosition, Intersection.IsOnPosition, \
-                                  AngleBisector.IsOnPosition
+                                  AngleBisector.IsOnPosition, Perpendicular.IsOnPosition
 
 Objects.MoveProcedures dd Point.Move, Segment.Move, CircleWithCenter.Move, Line.Move, EllipseObj.Move, PolylineObj.Move, PolygonObj.Move, \
-                          Parabola.Move, Intersection.Move, AngleBisector.Move
+                          Parabola.Move, Intersection.Move, AngleBisector.Move, Perpendicular.Move
 
 Objects.DependencyObjectsIdsOffsets dd    Point.DependencyObjectsIdsOffsets, Segment.DependencyObjectsIdsOffsets, CircleWithCenter.DependencyObjectsIdsOffsets, \
                                           Line.DependencyObjectsIdsOffsets, EllipseObj.DependencyObjectsIdsOffsets, \
@@ -25,10 +26,12 @@ Objects.DependencyObjectsIdsOffsets dd    Point.DependencyObjectsIdsOffsets, Seg
                                           0, \ ; The same story about polygon
                                           Parabola.DependencyObjectsIdsOffsets, \
                                           0, \ ; Same for intersection
-                                          AngleBisector.DependencyObjectsIdsOffsets
+                                          AngleBisector.DependencyObjectsIdsOffsets, \
+                                          Perpendicular.DependencyObjectsIdsOffsets
 
 
 Objects.EditableProperties dd Point.EditableProperties, Segment.EditableProperties, CircleWithCenter.EditableProperties, \
                               Line.EditableProperties, EllipseObj.EditableProperties, PolylineObj.EditableProperties, \
-                              PolygonObj.EditableProperties, Parabola.EditableProperties, 0, AngleBisector.EditableProperties
+                              PolygonObj.EditableProperties, Parabola.EditableProperties, 0, AngleBisector.EditableProperties, \
+                              Perpendicular.EditableProperties
 

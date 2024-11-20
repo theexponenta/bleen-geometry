@@ -30,7 +30,7 @@ proc WinMain
     mov [hProcessHeap], eax
     
     mov ebx, Objects
-    stdcall HeterogenousVector.Create, 255
+    stdcall HeterogenousVector.Create, 4096
 
     mov ebx, SelectedObjectsIds
     stdcall Vector.Create, 4, 0, 40
@@ -809,7 +809,8 @@ section '.rsrc' resource data readable
              TOOL_POLYGON, LANG_NEUTRAL, polygon_icon, \
              TOOL_PARABOLA, LANG_NEUTRAL, parabola_icon, \
              TOOL_INTERSECTION, LANG_NEUTRAL, intersection_icon, \
-             TOOL_ANGLE_BISECTOR, LANG_NEUTRAL, angle_bisector_icon
+             TOOL_ANGLE_BISECTOR, LANG_NEUTRAL, angle_bisector_icon, \
+             TOOL_PERPENDICULAR, LANG_NEUTRAL, perpendicular_icon
 
     bitmap move_icon, 'icons/move.bmp'
     bitmap point_icon, 'icons/point.bmp'
@@ -822,3 +823,4 @@ section '.rsrc' resource data readable
     bitmap parabola_icon, 'icons/parabola_icon.bmp'
     bitmap intersection_icon, 'icons/intersection_icon.bmp'
     bitmap angle_bisector_icon, 'icons/angle_bisector_icon.bmp'
+    bitmap perpendicular_icon, 'icons/perpendicular_icon.bmp'

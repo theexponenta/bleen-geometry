@@ -232,3 +232,16 @@ proc Main.AddAngleBisector uses ebx, Point1Id, Point2Id, Point3Id
 
     ret
 endp
+
+
+proc Main.AddPerpendicular uses ebx, PointId, LineObjectId
+    local NewPerpendicular Perpendicular ?
+
+    lea ebx, [NewPerpendicular]
+    stdcall Perpendicular.Create, [NextObjectId], 0, 0, [PointId], [LineObjectId], \
+                                  GeometryObject.DefaultLineWidth, GeometryObject.DefaultLineColor
+
+    stdcall Main.AddObject, ebx, sizeof.Perpendicular
+
+    ret
+endp

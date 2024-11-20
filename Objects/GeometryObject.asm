@@ -79,13 +79,10 @@ proc GeometryObject.IsDependableObjectType, Type
     cmp edx, OBJ_POINT
     je .Return
 
-    cmp edx, OBJ_SEGMENT
-    je .Return
-
     cmp edx, OBJ_INTERSECTION
     je .Return
 
-    xor eax, eax
+    stdcall GeometryObject.IsLineObjectType, edx
 
     .Return:
     ret

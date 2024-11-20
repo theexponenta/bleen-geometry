@@ -57,7 +57,7 @@ proc Segment.Draw uses ebx edi, hdc
     stdcall Draw.Line, [hdc], [X1], [Y1], [X2], [Y2], [SelectedWidth], GeometryObject.SelectedLineColor
 
     @@:
-    stdcall Draw.Line, [hdc], [X1], [Y1], [X2], [Y2], GeometryObject.DefaultLineWidth, GeometryObject.DefaultLineColor
+    stdcall Draw.Line, [hdc], [X1], [Y1], [X2], [Y2], GeometryObject.DefaultLineWidth, [ebx + Segment.Color]
 
     .Return:
     ret
