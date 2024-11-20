@@ -31,7 +31,8 @@ proc IntersectionTool.SelectObject uses esi
     cmp ecx, edx
     jbe @F
 
-    xchg eax, [IntersectionTool.Object1Id]
+    mov eax, [IntersectionTool.Object1Id]
+    xchg eax, [IntersectionTool.Object2Id]
     mov [IntersectionTool.Object2Id], eax
     xchg ecx, edx
 
