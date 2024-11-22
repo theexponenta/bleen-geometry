@@ -12,4 +12,5 @@ include 'Parabola/Parabola.inc'
 include 'Intersection/Intersection.inc'
 include 'AngleBisector/AngleBisector.inc'
 include 'Perpendicular/Perpendicular.inc'
+include 'PerpendicularBisector/PerpendicularBisector.inc'
 

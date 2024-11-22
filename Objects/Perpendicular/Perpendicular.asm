@@ -14,8 +14,6 @@ proc Perpendicular.Create, Id, pName, pCaption, Point1Id, LineObjectId, Width, C
     mov eax, [Color]
     mov [ebx + Perpendicular.Color], eax
 
-    mov [ebx + Perpendicular.Vector.Point2.x], 0f
-
     ret
 endp
 
@@ -60,16 +58,33 @@ proc Perpendicular.Draw, hDC
     fsub [LineObject.Point1.x]
     fld [LineObject.Point2.y]
     fsub [LineObject.Point1.y]
+    ftst
+    fstsw ax
+    sahf
+    jnz @F
+
+    fld1
+    fadd [PerpendicularPoint.y]
+    fstp [ebx + Perpendicular.Vector.Point2.y]
+    mov eax, [PerpendicularPoint.x]
+    mov [ebx + Perpendicular.Vector.Point2.x], eax
+    fstp st0
+    fstp st0
+    jmp .DrawLine
+
+    @@:
+    mov [ebx + Perpendicular.Vector.Point2.x], 0f
     fdivp
     fmul [PerpendicularPoint.x]
     fadd [PerpendicularPoint.y]
     fstp [ebx + Perpendicular.Vector.Point2.y]
 
+    .DrawLine:
     stdcall Main.ToScreenPosition, [PerpendicularPoint.x], [PerpendicularPoint.y]
     mov [PerpendicularPoint.x], edx
     mov [PerpendicularPoint.y], eax
 
-    stdcall Main.ToScreenPosition, [ebx + Perpendicular.Vector.Point2.x], [ebx + AngleBisector.Vector.Point2.y]
+    stdcall Main.ToScreenPosition, [ebx + Perpendicular.Vector.Point2.x], [ebx + Perpendicular.Vector.Point2.y]
 
     lea ecx, [BorderPoint2]
     push ecx

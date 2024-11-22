@@ -417,7 +417,7 @@ proc Main.UnselectObjects uses ebx
     mov edx, [SelectedObjectsPtrs.Ptr]
     .UnselectLoop:
         mov eax, [edx]
-        mov byte[eax + GeometryObject.IsSelected], 0
+        mov byte [eax + GeometryObject.IsSelected], 0
         add edx, 4
         loop .UnselectLoop
 
@@ -810,7 +810,8 @@ section '.rsrc' resource data readable
              TOOL_PARABOLA, LANG_NEUTRAL, parabola_icon, \
              TOOL_INTERSECTION, LANG_NEUTRAL, intersection_icon, \
              TOOL_ANGLE_BISECTOR, LANG_NEUTRAL, angle_bisector_icon, \
-             TOOL_PERPENDICULAR, LANG_NEUTRAL, perpendicular_icon
+             TOOL_PERPENDICULAR, LANG_NEUTRAL, perpendicular_icon, \
+             TOOL_PERPENDICULAR_BISECTOR, LANG_NEUTRAL, perpendicular_bisector_icon
 
     bitmap move_icon, 'icons/move.bmp'
     bitmap point_icon, 'icons/point.bmp'
@@ -824,3 +825,4 @@ section '.rsrc' resource data readable
     bitmap intersection_icon, 'icons/intersection_icon.bmp'
     bitmap angle_bisector_icon, 'icons/angle_bisector_icon.bmp'
     bitmap perpendicular_icon, 'icons/perpendicular_icon.bmp'
+    bitmap perpendicular_bisector_icon, 'icons/perpendicular_bisector_icon.bmp'

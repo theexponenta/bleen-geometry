@@ -270,6 +270,6 @@ proc Line.Move uses esi
     mov ebx, eax
     call Point.Move
 
-   ret
+    ret
 endp
 

@@ -102,6 +102,12 @@ proc GeometryObject.IsLineObjectType, Type
     cmp edx, OBJ_ANGLE_BISECTOR
     je .Return
 
+    cmp edx, OBJ_PERPENDICULAR
+    je .Return
+
+    cmp edx, OBJ_PERPENDICULAR_BISECTOR
+    je .Return
+
     xor eax, eax
 
     .Return:

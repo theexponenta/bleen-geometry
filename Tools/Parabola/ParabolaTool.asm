@@ -8,12 +8,11 @@ proc ParabolaTool.SelectDirectrix
     jz .Return
 
     movzx edx, byte [eax + GeometryObject.Type]
-    cmp edx, OBJ_LINE
-    je @F
-    cmp edx, OBJ_SEGMENT
-    je @F
-    cmp edx, OBJ_ANGLE_BISECTOR
-    jne .Return
+    push eax
+    stdcall GeometryObject.IsLineObjectType, edx
+    test eax, eax
+    pop eax
+    jz .Return
 
     @@:
     mov [ParabolaTool.pDirectrixLineObject], eax
