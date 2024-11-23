@@ -55,6 +55,7 @@ proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
         movzx eax, word [wparam]
         mov [CurrentToolId], eax
         mov [CurrentStateId], 1
+        stdcall Main.UnselectObjects
         jmp .Return_0
 
     .Wmkeydown:

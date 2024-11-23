@@ -367,8 +367,14 @@ proc Main.GetObjectOnPosition uses ebx edi, X, Y
     test ecx, ecx
     jz .ReturnNotFound
 
+    mov edi, ecx
+    sub edi, 1
+    shl edi, 2
+    add edi, [Objects.Sizes.Ptr]
     mov ebx, [Objects.Ptr]
-    mov edi, [Objects.Sizes.Ptr]
+    add ebx, [Objects.TotalSize]
+    sub ebx, [edi]
+
     .FindLoop:
         push ecx
         movzx eax, byte [ebx + GeometryObject.Type]
@@ -381,8 +387,8 @@ proc Main.GetObjectOnPosition uses ebx edi, X, Y
 
         pop ecx
 
-        add ebx, [edi]
-        add edi, HeterogenousVector.BytesForElementSize
+        sub edi, HeterogenousVector.BytesForElementSize
+        sub ebx, [edi]
         loop .FindLoop
 
     .ReturnNotFound:
@@ -410,17 +416,28 @@ endp
 
 
 proc Main.UnselectObjects uses ebx
-    mov ecx, [SelectedObjectsPtrs.Length]
+    mov ecx, [Objects.Sizes.Length]
     test ecx, ecx
-    jz .Return
-
-    mov edx, [SelectedObjectsPtrs.Ptr]
-    .UnselectLoop:
-        mov eax, [edx]
+    jz .UnselectPoints
+    mov edx, [Objects.Sizes.Ptr]
+    mov eax, [Objects.Ptr]
+    .UnselectObjectLoop:
         mov byte [eax + GeometryObject.IsSelected], 0
+        add eax, [edx]
         add edx, 4
-        loop .UnselectLoop
+        loop .UnselectObjectLoop
 
+    .UnselectPoints:
+    mov ecx, [Points.Length]
+    test ecx, ecx
+    jz @F
+    mov eax, [Points.Ptr]
+    .UnselectPointsLoop:
+        mov byte [eax + Point.IsSelected], 0
+        add eax, sizeof.Point
+        loop .UnselectPointsLoop
+
+    @@:
     mov ebx, SelectedObjectsPtrs
     stdcall Vector.Clear
     mov ebx, SelectedObjectsIds

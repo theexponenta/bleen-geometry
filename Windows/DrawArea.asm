@@ -302,8 +302,13 @@ proc DrawArea.Redraw uses ebx edi
     test ecx, ecx
     jz .DrawPoints
 
-    mov edi, [Objects.Sizes.Ptr]
+    mov edi, ecx
+    sub edi, 1
+    shl edi, 2
+    add edi, [Objects.Sizes.Ptr]
     mov ebx, [Objects.Ptr]
+    add ebx, [Objects.TotalSize]
+    sub ebx, [edi]
 
     .DrawLoop:
         cmp byte [ebx + GeometryObject.IsHidden], 0
@@ -318,8 +323,8 @@ proc DrawArea.Redraw uses ebx edi
         pop ecx
 
         .NextIteration:
-        add ebx, [edi]
-        add edi, HeterogenousVector.BytesForElementSize
+        sub edi, HeterogenousVector.BytesForElementSize
+        sub ebx, [edi]
         loop .DrawLoop
 
      .DrawPoints:
