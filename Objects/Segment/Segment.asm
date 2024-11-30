@@ -107,3 +107,19 @@ proc Segment.Move uses esi
 
    ret
 endp
+
+
+proc Segment.ToString, pBuffer
+    mov eax, [ebx + Segment.Point2Id]
+    stdcall Main.FindPointById
+    push [eax + GeometryObject.pName]
+
+    mov eax, [ebx + Segment.Point1Id]
+    stdcall Main.FindPointById
+    push [eax + GeometryObject.pName]
+
+    cinvoke sprintf, [pBuffer], Segment.StrFormat ; Format arguments are pushed above
+    add esp, 4*2
+
+    ret
+endp

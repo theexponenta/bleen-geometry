@@ -35,6 +35,8 @@ proc PerpendicularBisectorTool.SelectSecondPoint
     mov [edx + PerpendicularBisector.Point2Id], eax
     mov [CurrentStateId], PerpendicularBisectorTool.States.SelectPointOrSegment
 
+    stdcall Main.ToolAddedObject
+
     .Return:
     ret
 endp

@@ -247,3 +247,11 @@ proc PolygonObj.Destroy uses ebx esi
     .Return:
     ret
 endp
+
+
+proc PolygonObj.ToString, pBuffer
+    invoke lstrcpyA, [pBuffer], PolygonObj.StrFormat
+    invoke lstrlenA, PolygonObj.StrFormat
+
+    ret
+endp

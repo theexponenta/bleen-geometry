@@ -169,3 +169,11 @@ proc PolylineObj.DependsOnObject uses esi, Id
     mov eax, ecx ; If found, ecx is nonzero
     ret
 endp
+
+
+proc PolylineObj.ToString, pBuffer
+    invoke lstrcpyA, [pBuffer], PolylineObj.StrFormat
+    invoke lstrlenA, PolylineObj.StrFormat
+
+    ret
+endp

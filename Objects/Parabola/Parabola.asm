@@ -282,3 +282,15 @@ proc Parabola.IsOnPosition X, Y
     fstp st0
     ret
 endp
+
+
+proc Parabola.ToString, pBuffer
+    mov eax, [ebx + Parabola.FocusPointId]
+    stdcall Main.FindPointById
+    push [eax + GeometryObject.pName]
+
+    cinvoke sprintf, [pBuffer], Parabola.StrFormat ; Format arguments are pushed above
+    add esp, 4
+
+    ret
+endp

@@ -45,6 +45,7 @@ proc IntersectionTool.SelectObject uses esi
     jz .Finish
 
     stdcall Main.AddIntersection, [IntersectionTool.Object1Id], [IntersectionTool.Object2Id]
+    stdcall Main.ToolAddedObject
 
     .Finish:
     call IntersectionTool.Cancel

@@ -6,6 +6,7 @@ MainWindow.hwnd dd ?
 MainWindow.Title du 'Suck Dick', 0
 
 MainWindow.Toolbar.hwnd dd ?
+MainWindow.ToolbarHeight = 40
 MainWindow.Toolbar.BitmapSize = 24
 MainWindow.Toolbar.Buttons TBBUTTON 0, TOOL_MOVE, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0, NULL
                            TBBUTTON 1, TOOL_POINT, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0, NULL

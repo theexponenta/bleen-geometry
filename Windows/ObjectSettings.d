@@ -48,6 +48,11 @@ ObjectSettingsWindow.Buttons.OK.hMenu = 1
 ObjectSettingsWindow.Buttons.OK.Text du "OK", 0
 ObjectSettingsWindow.Buttons.Cancel.Text du "Cancel", 0
 
+ObjectSettingsWindow.VisibilityCheckboxText du "Visible", 0
+ObjectSettingsWindow.VisibilityCheckboxMarginBottom = 20
+ObjectSettingsWindow.CheckboxWidth = 100
+ObjectSettingsWindow.CheckboxHeight = 20
+
 
 
 

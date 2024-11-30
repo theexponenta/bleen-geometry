@@ -273,3 +273,18 @@ proc Line.Move uses esi
     ret
 endp
 
+
+proc Line.ToString, pBuffer
+    mov eax, [ebx + Line.Point2Id]
+    stdcall Main.FindPointById
+    push [eax + GeometryObject.pName]
+
+    mov eax, [ebx + Line.Point1Id]
+    stdcall Main.FindPointById
+    push [eax + GeometryObject.pName]
+
+    cinvoke sprintf, [pBuffer], Line.StrFormat ; Format arguments are pushed above
+    add esp, 4*2
+
+    ret
+endp

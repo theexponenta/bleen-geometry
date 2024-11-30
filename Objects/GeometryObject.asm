@@ -201,6 +201,18 @@ proc GeometryObject.SetName uses esi edi, pNewName
 endp
 
 
+proc GeometryObject.ToString, pBuffer
+    movzx eax, byte[ebx + GeometryObject.Type]
+    dec eax
+    shl eax, 2
+    add eax, Objects.ToStringProcedures
+    stdcall dword [eax], [pBuffer]
+
+    .Return:
+    ret
+endp
+
+
 proc GeometryObject.Destroy
     movzx eax, [ebx + GeometryObject.Type]
 

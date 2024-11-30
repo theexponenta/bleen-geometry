@@ -22,6 +22,7 @@ proc AngleBisectorTool.SelectNextPoint
         mov [AngleBisectorTool.SelectedPointsCount], 0
         mov edx, [AngleBisectorTool.pTempAngleBisector]
         mov [edx + AngleBisector.Point3Id], eax
+        stdcall Main.ToolAddedObject
         jmp .Return
 
         @@:

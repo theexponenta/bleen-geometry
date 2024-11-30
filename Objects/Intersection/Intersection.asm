@@ -189,3 +189,10 @@ proc Intersection.DependsOnObject, ObjectId
    ret
 endp
 
+
+proc Intersection.ToString, pBuffer
+    invoke lstrcpyA, [pBuffer], Intersection.StrFormat
+    invoke lstrlenA, Intersection.StrFormat
+
+    ret
+endp

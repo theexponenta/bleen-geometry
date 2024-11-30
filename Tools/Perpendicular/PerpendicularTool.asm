@@ -39,6 +39,8 @@ proc PerpendicularTool.SelectPoint uses esi
     mov [CurrentStateId], PerpendicularTool.States.SelectLine
     mov [PerpendicularTool.NextObjectIdBeforeTool], 0
 
+    stdcall Main.ToolAddedObject
+
     .Return:
     ret
 endp

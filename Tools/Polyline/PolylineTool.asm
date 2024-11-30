@@ -32,6 +32,7 @@ proc PolylineTool.SelectNextPoint uses ebx esi
         add ebx, PolylineObj.PointsIds
         stdcall Vector.Pop
         mov [PolylineTool.pTempPolyline], 0
+        stdcall Main.ToolAddedObject
         jmp .Return
 
         @@:

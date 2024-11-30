@@ -21,6 +21,7 @@ proc EllipseTool.SelectNextPoint
         mov edx, [EllipseTool.pTempEllipse]
         mov [edx + EllipseObj.CircumferencePointId], eax
         mov [EllipseTool.SelectedPointsCount], 0
+        stdcall Main.ToolAddedObject
         jmp .Return
 
         @@:

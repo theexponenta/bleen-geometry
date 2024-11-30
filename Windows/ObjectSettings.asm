@@ -19,9 +19,10 @@ proc ObjectSettingsWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lpara
         mov eax, [wparam]
         cmp eax, ObjectSettingsWindow.Buttons.OK.hMenu
         jne .Return_0
-
+        mov byte [ObjectsListWindow.NeedsRedraw], 1
         stdcall ObjectSettingsWindow._Submit
         stdcall DrawArea.Redraw
+        stdcall ObjectsListWindow.Redraw
         invoke DestroyWindow, [hWnd]
 
     .Return_0:
@@ -320,6 +321,33 @@ proc ObjectSettingsWindow._AddColorPickerControl, hWndParent, InitialColor
     ret
 endp
 
+
+proc ObjectSettingsWindow._AddVisibilityCheckbox, hWndParent, IsChecked
+    locals
+        hWndCheckbox dd ?
+    endl
+
+    invoke CreateWindowEx, 0, BUTTONCLASSNAME, ObjectSettingsWindow.VisibilityCheckboxText, BS_AUTOCHECKBOX or WS_VISIBLE or WS_CHILD, \
+                           ObjectSettingsWindow.PaddingLeft, [ObjectSettingsWindow.CurrentYOffset], \
+                           ObjectSettingsWindow.CheckboxWidth, ObjectSettingsWindow.CheckboxHeight, [hWndParent], NULL, [hInstance], NULL
+
+    mov [hWndCheckbox], eax
+    stdcall ObjectSettingsWindow._AddFieldInputControl, eax, PROP_VISIBLE, GeometryObject.IsHidden
+
+    mov edx, BST_UNCHECKED
+    cmp [IsChecked], 0
+    je @F
+
+    mov edx, BST_CHECKED
+
+    @@:
+    invoke SendMessage, [hWndCheckbox], BM_SETCHECK, edx, 0
+    stdcall ObjectSettingsWindow._IncreaseYOffset, [hWndCheckbox], ObjectSettingsWindow.VisibilityCheckboxMarginBottom
+
+    ret
+endp
+
+
 proc ObjectSettingsWindow._AddButtons, hWndParent
     invoke CreateWindowEx, 0, BUTTONCLASSNAME, ObjectSettingsWindow.Buttons.OK.Text, WS_VISIBLE or WS_CHILD, \
                            ObjectSettingsWindow.Width - ObjectSettingsWindow.DistanceBetweenButtons, \
@@ -333,6 +361,11 @@ endp
 
 
 proc ObjectSettingsWindow._AddControls uses ebx, hWnd, EditableProperties
+    mov eax, [ObjectSettingsWindow.pObject]
+    movzx edx, byte [eax + GeometryObject.IsHidden]
+    xor edx, 1
+    stdcall ObjectSettingsWindow._AddVisibilityCheckbox, [hWnd], edx
+
     test [EditableProperties], PROP_NAME
     jz @F
 
@@ -384,6 +417,20 @@ proc ObjectSettingsWindow._Submit uses esi ebx
     .SetValuesLoop:
         push ecx
         mov eax, [esi + ObjectFieldInputControl.EditableProperty]
+
+        cmp eax, PROP_VISIBLE
+        jne @F
+
+        invoke SendMessage, [esi + ObjectFieldInputControl.hWnd], BM_GETCHECK, 0, 0
+        xor edx, edx
+        cmp eax, BST_CHECKED
+        je .SetIsHidden
+
+        mov edx, 1
+
+        .SetIsHidden:
+        mov byte [ebx + GeometryObject.IsHidden], dl
+        jmp .NextIteration
 
         cmp eax, PROP_NAME
         jne @F

@@ -1,1 +1,2 @@
 EllipseObj.DependencyObjectsIdsOffsets dd 3, EllipseObj.FocusPoint1Id, EllipseObj.FocusPoint2Id, EllipseObj.CircumferencePointId
+EllipseObj.StrFormat db "Ellipse with foci %s, %s passing through %s", 0

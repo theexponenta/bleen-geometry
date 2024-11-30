@@ -199,3 +199,8 @@ proc Point.IsOnPosition X, Y
     ret
 endp
 
+
+proc Point.ToString, pBuffer
+    cinvoke sprintf, [pBuffer], Point.StrFormat, [ebx + Point.pName]
+    ret
+endp

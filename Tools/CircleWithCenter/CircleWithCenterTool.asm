@@ -52,6 +52,7 @@ proc CircleWithCenterTool.SelectSecondPoint
         mov edx, [CircleWithCenterTool.pTempCircle]
         mov [edx + CircleWithCenter.SecondPointId], eax
 
+    stdcall Main.ToolAddedObject
     ret
 endp
 

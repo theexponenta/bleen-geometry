@@ -152,3 +152,22 @@ endp
 proc AngleBisector.Move
     ret
 endp
+
+
+proc AngleBisector.ToString, pBuffer
+    mov eax, [ebx + AngleBisector.Point3Id]
+    stdcall Main.FindPointById
+    push [eax + AngleBisector.pName]
+
+    mov eax, [ebx + AngleBisector.Point2Id]
+    stdcall Main.FindPointById
+    push [eax + AngleBisector.pName]
+
+    mov eax, [ebx + AngleBisector.Point1Id]
+    stdcall Main.FindPointById
+    push [eax + AngleBisector.pName]
+
+    cinvoke sprintf, [pBuffer], AngleBisector.StrFormat ; Format arguments are pushed above
+
+    ret
+endp

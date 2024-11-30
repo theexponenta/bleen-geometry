@@ -157,3 +157,11 @@ proc PerpendicularBisector.Move uses esi ebx
 
     ret
 endp
+
+
+proc PerpendicularBisector.ToString, pBuffer
+    invoke lstrcpyA, [pBuffer], PerpendicularBisector.StrFormat
+    invoke lstrlenA, PerpendicularBisector.StrFormat
+
+    ret
+endp

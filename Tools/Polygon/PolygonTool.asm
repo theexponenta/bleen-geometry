@@ -30,6 +30,7 @@ proc PolygonTool.SelectNextPoint uses ebx esi
         jne .AddNextSegment
 
         mov [PolygonTool.PolygonId], 0
+        stdcall Main.ToolAddedObject
         jmp .Return
 
         .SaveFirstPointId:

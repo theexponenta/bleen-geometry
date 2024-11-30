@@ -142,3 +142,15 @@ proc Perpendicular.Move uses esi ebx
 
     ret
 endp
+
+
+proc Perpendicular.ToString, pBuffer
+    mov eax, [ebx + Perpendicular.PointId]
+    stdcall Main.FindPointById
+    push [eax + GeometryObject.pName]
+
+    cinvoke sprintf, [pBuffer], Perpendicular.StrFormat ; Format arguments are pushed above
+    add esp, 4
+
+    ret
+endp

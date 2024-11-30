@@ -1,5 +1,9 @@
 
 proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
+    locals
+        ClientRect RECT ?
+    endl
+
     mov eax, [wmsg]
 
     cmp eax, WM_DESTROY
@@ -20,35 +24,7 @@ proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
         jmp .Return
 
     .Wmcreate:
-        invoke SystemParametersInfo, SPI_GETWORKAREA, NULL, WorkArea, 0
-
-        mov eax, [WorkArea.right]
-        sub eax, DrawArea.OffsetX
-        mov [DrawArea.Width], eax
-        mov eax, [WorkArea.bottom]
-        mov [DrawArea.Height], eax
-        invoke CreateWindowEx, 0, DrawArea.wcexClass.ClassName, NULL, WS_CHILD or WS_VISIBLE, DrawArea.OffsetX, DrawArea.OffsetY, \
-                               [DrawArea.Width], [DrawArea.Height], [hwnd], NULL, [hInstance], NULL
-        mov [DrawArea.hwnd], eax
-        stdcall DrawArea.Clear, [DrawArea.MainBufferDC]
-
         stdcall MainWindow.CreateToolbar, [hwnd]
-
-        fild [DrawArea.Width]
-        fld [InitialXWidth]
-        fdivp
-        fstp [Scale]
-
-        fld1
-        fadd st0, st0
-        fild [DrawArea.Width]
-        fdiv st0, st1
-        fstp [Translate.x]
-        fild [DrawArea.Height]
-        fdiv st0, st1
-        fstp [Translate.y]
-        fstp st0
-
         jmp .Return_0
 
     .Wmcommand:
@@ -74,6 +50,14 @@ proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
 
     .Wmsize:
         invoke SendMessage, [MainWindow.Toolbar.hwnd], WM_SIZE, 0, 0
+
+        lea edx, [ClientRect]
+        invoke GetClientRect, [hwnd], edx
+        mov eax, [ClientRect.bottom]
+        sub eax, [ClientRect.top]
+        sub eax, MainWindow.ToolbarHeight
+        invoke SetWindowPos, [ObjectsListWindow.hWnd], HWND_BOTTOM, ebx, ebx, [ObjectsListWindow.Width], eax, \
+                             SWP_NOMOVE or SWP_NOREPOSITION or SWP_NOZORDER
         jmp .Return_0
 
     .Wmdestroy:

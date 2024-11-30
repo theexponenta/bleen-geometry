@@ -188,6 +188,9 @@ proc DrawArea.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
 
      .Redraw:
      stdcall DrawArea.Redraw
+     cmp byte [ObjectsListWindow.NeedsRedraw], 0
+     je .Return_0
+     stdcall ObjectsListWindow.Redraw
      jmp .Return_0
 
      .Wmdestroy:

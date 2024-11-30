@@ -172,3 +172,19 @@ proc CircleWithCenter.Move uses ebx edi
 
    ret
 endp
+
+
+proc CircleWithCenter.ToString, pBuffer
+    mov eax, [ebx + CircleWithCenter.SecondPointId]
+    stdcall Main.FindPointById
+    push [eax + GeometryObject.pName]
+
+    mov eax, [ebx + CircleWithCenter.CenterPointId]
+    stdcall Main.FindPointById
+    push [eax + GeometryObject.pName]
+
+    cinvoke sprintf, [pBuffer], CircleWithCenter.StrFormat ; Format arguments are pushed above
+    add esp, 4*2
+
+    ret
+endp

@@ -52,6 +52,8 @@ proc SegmentTool.SelectPoint2
         mov edx, [SegmentTool.pTempSegment]
         mov [edx + Segment.Point2Id], eax
 
+    stdcall Main.ToolAddedObject
+
     ret
 endp
 

@@ -52,6 +52,7 @@ proc LineTool.SelectPoint2
         mov edx, [LineTool.pTempLine]
         mov [edx + Line.Point2Id], eax
 
+    stdcall Main.ToolAddedObject
     ret
 endp
 

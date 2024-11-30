@@ -6,6 +6,9 @@ include 'Ellipse/Ellipse.d'
 include 'Parabola/Parabola.d'
 include 'AngleBisector/AngleBisector.d'
 include 'Perpendicular/Perpendicular.d'
+include 'Polyline/Polyline.d'
+include 'Polygon/Polygon.d'
+include 'Intersection/Intersection.d'
 include 'PerpendicularBisector/PerpendicularBisector.d'
 include 'GeometryObject.d'
 
@@ -20,6 +23,10 @@ Objects.IsOnPositionProcedures dd Point.IsOnPosition, Segment.IsOnPosition, Circ
 
 Objects.MoveProcedures dd Point.Move, Segment.Move, CircleWithCenter.Move, Line.Move, EllipseObj.Move, PolylineObj.Move, PolygonObj.Move, \
                           Parabola.Move, Intersection.Move, AngleBisector.Move, Perpendicular.Move, PerpendicularBisector.Move
+
+Objects.ToStringProcedures dd Point.ToString, Segment.ToString, CircleWithCenter.ToString, Line.ToString, EllipseObj.ToString, PolylineObj.ToString, \
+                          PolygonObj.ToString, Parabola.ToString, Intersection.ToString, AngleBisector.ToString, \
+                          Perpendicular.ToString, PerpendicularBisector.ToString
 
 Objects.DependencyObjectsIdsOffsets dd    Point.DependencyObjectsIdsOffsets, Segment.DependencyObjectsIdsOffsets, CircleWithCenter.DependencyObjectsIdsOffsets, \
                                           Line.DependencyObjectsIdsOffsets, EllipseObj.DependencyObjectsIdsOffsets, \

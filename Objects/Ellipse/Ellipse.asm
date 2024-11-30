@@ -250,3 +250,23 @@ proc EllipseObj.IsOnPosition X, Y
     fstp st0
     ret
 endp
+
+
+proc EllipseObj.ToString, pBuffer
+    mov eax, [ebx + EllipseObj.CircumferencePointId]
+    stdcall Main.FindPointById
+    push [eax + GeometryObject.pName]
+
+    mov eax, [ebx +  EllipseObj.FocusPoint2Id]
+    stdcall Main.FindPointById
+    push [eax + GeometryObject.pName]
+
+    mov eax, [ebx +  EllipseObj.FocusPoint1Id]
+    stdcall Main.FindPointById
+    push [eax + GeometryObject.pName]
+
+    cinvoke sprintf, [pBuffer], EllipseObj.StrFormat ; Format arguments are pushed above
+    add esp, 4*3
+
+    ret
+endp

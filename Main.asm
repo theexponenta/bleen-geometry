@@ -3,6 +3,7 @@ entry WinMain
 
 include 'win32w.inc'
 include './Equates/GDI.inc'
+include './Equates/Winuser.inc'
 include 'DataStructures/Vector.inc'
 include 'DataStructures/HeterogenousVector.inc'
 include 'DataStructures/LinkedList.inc'
@@ -76,6 +77,13 @@ proc WinMain
     test eax, eax
     jz .Error
 
+    mov [WindowClass.lpfnWndProc], ObjectsListWindow.WindowProc
+    mov [WindowClass.lpszClassName], ObjectsListWindow.wcexClass.ClassName
+    mov [WindowClass.hbrBackground], COLOR_BTNFACE + 1
+    invoke RegisterClassEx, WindowClass
+    test eax, eax
+    jz .Error
+
     mov [WindowClass.lpfnWndProc], ObjectSettingsWindow.WindowProc
     mov [WindowClass.lpszClassName], ObjectSettingsWindow.wcexClass.ClassName
     mov [WindowClass.hbrBackground], COLOR_BTNFACE + 1
@@ -91,15 +99,7 @@ proc WinMain
     test eax, eax
     jz .Error
 
-    invoke CreateWindowEx, 0, MainWindow.wcexClass.ClassName, MainWindow.Title, \
-        WS_OVERLAPPEDWINDOW, 0, 0, 100, 100, \
-        NULL, NULL, [hInstance], NULL
-
-    test eax, eax
-    jz .Error
-
-    mov [MainWindow.hwnd], eax
-    invoke ShowWindow, eax, SW_MAXIMIZE
+    stdcall Main.CreateWindows
 
     lea edi, [Msg]
     .MessageLoop:
@@ -123,6 +123,76 @@ proc WinMain
 
     .EndLoop:
         invoke ExitProcess, [Msg.wParam]
+endp
+
+
+proc Main.CreateWindows
+    locals
+        ClientRect RECT ?
+        ClientWidth dd ?
+        ClientHeight dd ?
+    endl
+
+    invoke CreateWindowEx, 0, MainWindow.wcexClass.ClassName, MainWindow.Title, WS_OVERLAPPEDWINDOW, \
+                           0, 0, eax, edx, NULL, NULL, [hInstance], NULL
+
+    mov [MainWindow.hwnd], eax
+    invoke ShowWindow, eax, SW_MAXIMIZE
+
+    lea edx, [ClientRect]
+    invoke GetClientRect, [MainWindow.hwnd], edx
+
+    mov eax, [ClientRect.right]
+    sub eax, [ClientRect.left]
+    mov [ClientWidth], eax
+    mov [DrawArea.Width], eax
+
+    mov edx, [ClientRect.bottom]
+    sub edx, [ClientRect.top]
+    mov [ClientHeight], edx
+
+    sub edx, MainWindow.ToolbarHeight
+    mov [DrawArea.Height], edx
+
+    stdcall Main.InitTransformParams
+
+    invoke CreateWindowEx, 0, DrawArea.wcexClass.ClassName, NULL, WS_CHILD or WS_VISIBLE, [ObjectsListWindow.Width], MainWindow.ToolbarHeight, \
+                           eax, edx, [MainWindow.hwnd], NULL, [hInstance], NULL
+
+    mov [DrawArea.hwnd], eax
+    stdcall DrawArea.Clear, [DrawArea.MainBufferDC]
+
+    mov eax, [ClientHeight]
+    sub eax, MainWindow.ToolbarHeight
+    mov [ObjectsListWindow.Height], eax
+    invoke CreateWindowEx, 0, ObjectsListWindow.wcexClass.ClassName, NULL, WS_CHILD or WS_VISIBLE, 0, MainWindow.ToolbarHeight, \
+                           [ObjectsListWindow.Width], [DrawArea.Height], [MainWindow.hwnd], NULL, [hInstance], NULL
+
+    mov [ObjectsListWindow.hWnd], eax
+
+    ret
+endp
+
+
+proc Main.InitTransformParams
+    fild [DrawArea.Width]
+    fisub [ObjectsListWindow.Width]
+    fld [InitialXWidth]
+    fdivp
+    fstp [Scale]
+
+    fld1
+    fadd st0, st0
+    fild [DrawArea.Width]
+    fisub [ObjectsListWindow.Width]
+    fdiv st0, st1
+    fstp [Translate.x]
+    fild [DrawArea.Height]
+    fdiv st0, st1
+    fstp [Translate.y]
+    fstp st0
+
+    ret
 endp
 
 
@@ -177,6 +247,13 @@ proc Main.Transition MessageCode
     mov eax, 1
 
     .Return:
+    ret
+endp
+
+
+; A tool must call this function after it finished adding object
+proc Main.ToolAddedObject
+    mov byte [ObjectsListWindow.NeedsRedraw], 1
     ret
 endp
 
@@ -376,17 +453,20 @@ proc Main.GetObjectOnPosition uses ebx edi, X, Y
     sub ebx, [edi]
 
     .FindLoop:
-        push ecx
+        cmp byte [ebx + GeometryObject.IsHidden], 0
+        jne @F
+
         movzx eax, byte [ebx + GeometryObject.Type]
         dec eax
         shl eax, 2
         add eax, Objects.IsOnPositionProcedures
+        push ecx
         stdcall dword [eax], [X], [Y]
+        pop ecx
         test eax, eax
         jnz .ReturnFound
 
-        pop ecx
-
+        @@:
         sub edi, HeterogenousVector.BytesForElementSize
         sub ebx, [edi]
         loop .FindLoop
@@ -714,6 +794,8 @@ proc Main.DeleteObjectById uses ebx esi edi, Id
         add esi, 1
         loop .DeleteMarkedPointsLoop
 
+    mov byte [ObjectsListWindow.NeedsRedraw], 1
+
     .Return:
     ret
 endp
@@ -728,6 +810,7 @@ include 'DataStructures/LinkedList.asm'
 include 'Windows/Main.asm'
 include 'Windows/DrawArea.asm'
 include 'Windows/ObjectSettings.asm'
+include 'Windows/ObjectsList.asm'
 include 'Objects/Objects.asm'
 include 'Tools/Tools.asm'
 
@@ -786,6 +869,7 @@ section '.data' data readable writeable
   include 'Windows/Main.d'
   include 'Windows/DrawArea.d'
   include 'Windows/ObjectSettings.d'
+  include 'Windows/ObjectsList.d'
   include 'Tools/Tools.d'
   include 'Objects/Objects.d'
 

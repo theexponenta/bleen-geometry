@@ -39,6 +39,8 @@ proc ParabolaTool.SelectFocus uses esi
     mov [CurrentStateId], ParabolaTool.States.SelectDirectrix
     mov [ParabolaTool.NextObjectIdBeforeTool], 0
 
+    stdcall Main.ToolAddedObject
+
     .Return:
     ret
 endp
