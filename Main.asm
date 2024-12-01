@@ -63,6 +63,9 @@ proc WinMain
     invoke LoadCursor, 0, IDC_ARROW
     mov [WindowClass.hCursor], eax
 
+    invoke LoadCursor, NULL, IDC_SIZEWE
+    mov [MainWindow.hSplitterCursor], eax
+
     mov [WindowClass.lpfnWndProc], MainWindow.WindowProc
     mov [WindowClass.lpszClassName], MainWindow.wcexClass.ClassName
     invoke RegisterClassEx, WindowClass
@@ -151,8 +154,10 @@ proc Main.CreateWindows
 
     stdcall Main.InitTransformParams
 
-    invoke CreateWindowEx, 0, DrawArea.wcexClass.ClassName, NULL, WS_CHILD or WS_VISIBLE, [ObjectsListWindow.Width], MainWindow.ToolbarHeight, \
-                           eax, edx, [MainWindow.hwnd], NULL, [hInstance], NULL
+    mov ecx, [ObjectsListWindow.Width]
+    add ecx, MainWindow.SplitterBarWidth
+    invoke CreateWindowEx, 0, DrawArea.wcexClass.ClassName, NULL, WS_CHILD or WS_VISIBLE, ecx, \
+                           MainWindow.ToolbarHeight, eax, edx, [MainWindow.hwnd], NULL, [hInstance], NULL
 
     mov [DrawArea.hwnd], eax
     stdcall DrawArea.Clear, [DrawArea.MainBufferDC]
@@ -160,7 +165,7 @@ proc Main.CreateWindows
     mov eax, [ClientHeight]
     sub eax, MainWindow.ToolbarHeight
     mov [ObjectsListWindow.Height], eax
-    invoke CreateWindowEx, 0, ObjectsListWindow.wcexClass.ClassName, NULL, WS_CHILD or WS_VISIBLE, 0, MainWindow.ToolbarHeight, \
+    invoke CreateWindowEx, 0, ObjectsListWindow.wcexClass.ClassName, NULL, WS_CHILD or WS_VISIBLE or WS_BORDER, 0, MainWindow.ToolbarHeight, \
                            [ObjectsListWindow.Width], [DrawArea.Height], [MainWindow.hwnd], NULL, [hInstance], NULL
 
     mov [ObjectsListWindow.hWnd], eax

@@ -24,3 +24,7 @@ MainWindow.Toolbar.Buttons TBBUTTON 0, TOOL_MOVE, TBSTATE_ENABLED, TBSTYLE_CHECK
 
 
 MainWindow.Toolbar.ButtonsCount = ($ - MainWindow.Toolbar.Buttons) / sizeof.TBBUTTON
+
+MainWindow.SplitterBarWidth = 3
+MainWindow.hSplitterCursor dd ?
+MainWindow.IsResizing db 0
