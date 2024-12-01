@@ -24,5 +24,3 @@ MainWindow.Toolbar.Buttons TBBUTTON 0, TOOL_MOVE, TBSTATE_ENABLED, TBSTYLE_CHECK
 
 
 MainWindow.Toolbar.ButtonsCount = ($ - MainWindow.Toolbar.Buttons) / sizeof.TBBUTTON
-
-WorkArea RECT ?

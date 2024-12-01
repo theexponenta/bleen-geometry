@@ -21,16 +21,11 @@ proc AngleBisector.Create Id, pName, pCaption, Point1Id, Point2Id, Point3Id, Wid
 endp
 
 
-proc AngleBisector.Draw, hDC
+proc AngleBisector.Update
     locals
         Point1 POINT ?
         Point2 POINT ?
         Point3 POINT ?
-
-        BorderPoint1 POINT ?
-        BorderPoint2 POINT ?
-
-       SelectedWidth dd ?
     endl
 
     mov eax, [ebx + AngleBisector.Point1Id]
@@ -102,17 +97,31 @@ proc AngleBisector.Draw, hDC
     fstp [ebx + AngleBisector.Vector.Point2.y]
     fstp [ebx + AngleBisector.Vector.Point2.x]
 
-    stdcall Main.ToScreenPosition, [Point2.x], [Point2.y]
-    mov [Point2.x], edx
-    mov [Point2.y], eax
+    ret
+endp
+
+
+proc AngleBisector.Draw, hDC
+    locals
+        BorderPoint1 POINT ?
+        BorderPoint2 POINT ?
+
+        SelectedWidth dd ?
+    endl
+
+    stdcall AngleBisector.Update
+
+    lea eax, [BorderPoint1]
+    lea edx, [BorderPoint2]
+    push eax edx
+
+    stdcall Main.ToScreenPosition, [ebx + AngleBisector.Vector.Point1.x], [ebx + AngleBisector.Vector.Point1.y]
+    push eax edx
 
     stdcall Main.ToScreenPosition, [ebx + AngleBisector.Vector.Point2.x], [ebx + AngleBisector.Vector.Point2.y]
+    push eax edx
 
-    lea ecx, [BorderPoint2]
-    push ecx
-    lea ecx, [BorderPoint1]
-    push ecx
-    stdcall Line.GetLineBorderPoints, [Point2.x], [Point2.y], edx, eax ; Other 2 arguments are pushed above
+    stdcall Line.GetLineBorderPoints ;All the arguments are pushed above
 
     cmp [ebx + AngleBisector.IsSelected], 0
     je @F

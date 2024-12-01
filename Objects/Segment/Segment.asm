@@ -18,6 +18,25 @@ proc Segment.Create Id, pName, pCaption, Point1Id, Point2Id, Width, Color
 endp
 
 
+proc Segment.Update
+    mov eax, [ebx + Segment.Point1Id]
+    call Main.FindPointById
+    mov edx, [eax + Point.X]
+    mov ecx, [eax + Point.Y]
+    mov [ebx + Segment.Point1.x], edx
+    mov [ebx + Segment.Point1.y], ecx
+
+    mov eax, [ebx + Segment.Point2Id]
+    call Main.FindPointById
+    mov edx, [eax + Point.X]
+    mov ecx, [eax + Point.Y]
+    mov [ebx + Segment.Point2.x], edx
+    mov [ebx + Segment.Point2.y], ecx
+
+    ret
+endp
+
+
 proc Segment.Draw uses ebx edi, hdc
     locals
         X1 dd ?
@@ -28,23 +47,13 @@ proc Segment.Draw uses ebx edi, hdc
         SelectedWidth dd ?
     endl
 
-    mov eax, [ebx + Segment.Point1Id]
-    call Main.FindPointById
-    mov edx, [eax + Point.X]
-    mov ecx, [eax + Point.Y]
-    mov [ebx + Segment.Point1.x], edx
-    mov [ebx + Segment.Point1.y], ecx
-    stdcall Main.ToScreenPosition, [eax + Point.X], [eax + Point.Y]
+    stdcall Segment.Update
+
+    stdcall Main.ToScreenPosition, [ebx + Segment.Point1.x], [ebx + Segment.Point1.y]
     mov [X1], edx
     mov [Y1], eax
 
-    mov eax, [ebx + Segment.Point2Id]
-    call Main.FindPointById
-    mov edx, [eax + Point.X]
-    mov ecx, [eax + Point.Y]
-    mov [ebx + Segment.Point2.x], edx
-    mov [ebx + Segment.Point2.y], ecx
-    stdcall Main.ToScreenPosition, [eax + Point.X], [eax + Point.Y]
+    stdcall Main.ToScreenPosition, [ebx + Segment.Point2.x], [ebx + Segment.Point2.y]
     mov [X2], edx
     mov [Y2], eax
 

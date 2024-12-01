@@ -80,10 +80,12 @@ proc WinMain
     mov [WindowClass.lpfnWndProc], ObjectsListWindow.WindowProc
     mov [WindowClass.lpszClassName], ObjectsListWindow.wcexClass.ClassName
     mov [WindowClass.hbrBackground], COLOR_BTNFACE + 1
+    mov [WindowClass.style], CS_DBLCLKS
     invoke RegisterClassEx, WindowClass
     test eax, eax
     jz .Error
 
+    mov [WindowClass.style], 0
     mov [WindowClass.lpfnWndProc], ObjectSettingsWindow.WindowProc
     mov [WindowClass.lpszClassName], ObjectSettingsWindow.wcexClass.ClassName
     mov [WindowClass.hbrBackground], COLOR_BTNFACE + 1

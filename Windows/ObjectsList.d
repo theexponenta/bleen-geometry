@@ -23,6 +23,8 @@ ObjectsListWindow.ListItemPadding = 10
 ObjectsListWindow.ListItemHeight = ObjectsListWindow.ListItemPadding*2 + ObjectsListWindow.ListItemMarginBottom
 ObjectsListWindow.VisibilityCircleRadius = 10
 ObjectsListWindow.VisibilityCircleMarginRight = 10
+ObjectsListWindow.VisibilityCircleSectionWidth = ObjectsListWindow.ListItemMarginLeft + ObjectsListWindow.VisibilityCircleRadius*2 + \
+                                                 ObjectsListWindow.VisibilityCircleMarginRight
 ObjectsListWindow.VisibilityCircleSeparatorXOffset = ObjectsListWindow.VisibilityCircleRadius * 2 + ObjectsListWindow.ListItemMarginLeft + \
                                                      ObjectsListWindow.VisibilityCircleMarginRight
 ObjectsListWindow.TextMarginLeft = 10

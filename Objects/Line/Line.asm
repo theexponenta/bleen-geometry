@@ -182,6 +182,25 @@ proc Line.GetLineBorderPoints uses edi, P1.x, P1.y, P2.x, P2.y, pBorderPoint1, p
 endp
 
 
+proc Line.Update
+    mov eax, [ebx + Line.Point1Id]
+    call Main.FindPointById
+    mov edx, [eax + Point.X]
+    mov ecx, [eax + Point.Y]
+    mov [ebx + Line.Point1.x], edx
+    mov [ebx + Line.Point1.y], ecx
+
+    mov eax, [ebx + Line.Point2Id]
+    call Main.FindPointById
+    mov edx, [eax + Point.X]
+    mov ecx, [eax + Point.Y]
+    mov [ebx + Line.Point2.x], edx
+    mov [ebx + Line.Point2.y], ecx
+
+    ret
+endp
+
+
 proc Line.Draw uses edi, hdc
     locals
         P1 POINT ?
@@ -193,26 +212,16 @@ proc Line.Draw uses edi, hdc
         SelectedWidth dd ?
     endl
 
+    stdcall Line.Update
+
     lea eax, [P1Border]
     lea edx, [P2Border]
     push edx eax
 
-    mov eax, [ebx + Line.Point1Id]
-    call Main.FindPointById
-    mov edx, [eax + Point.X]
-    mov ecx, [eax + Point.Y]
-    mov [ebx + Line.Point1.x], edx
-    mov [ebx + Line.Point1.y], ecx
-    stdcall Main.ToScreenPosition, edx, ecx
+    stdcall Main.ToScreenPosition, [ebx + Line.Point1.x], [ebx + Line.Point1.y]
     push eax edx
 
-    mov eax, [ebx + Line.Point2Id]
-    call Main.FindPointById
-    mov edx, [eax + Point.X]
-    mov ecx, [eax + Point.Y]
-    mov [ebx + Line.Point2.x], edx
-    mov [ebx + Line.Point2.y], ecx
-    stdcall Main.ToScreenPosition, edx, ecx
+    stdcall Main.ToScreenPosition, [ebx + Line.Point2.x], [ebx + Line.Point2.y]
     push eax edx
 
     stdcall Line.GetLineBorderPoints ; All arguments are pushed above

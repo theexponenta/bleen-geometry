@@ -72,6 +72,22 @@ proc GeometryObject.Move uses ebx edi esi
 endp
 
 
+proc GeometryObject.Update
+    movzx eax, byte[ebx + GeometryObject.Type]
+    dec eax
+    shl eax, 2
+    add eax, Objects.UpdateProcedures
+    mov edx, [eax]
+    test edx, edx
+    jz .Return
+
+    call edx
+
+    .Return:
+    ret
+endp
+
+
 proc GeometryObject.IsDependableObjectType, Type
     mov edx, [Type]
     mov eax, 1

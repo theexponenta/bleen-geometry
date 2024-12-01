@@ -473,7 +473,11 @@ endp
 proc ObjectSettingsWindow.EditObject uses ebx, pObject
     locals
         hWnd dd ?
+        WorkArea RECT ?
     endl
+
+    mov eax, [pObject]
+    mov [ObjectSettingsWindow.pObject], eax
 
     mov [ObjectSettingsWindow.CurrentYOffset], ObjectSettingsWindow.InitialYOffset
 
@@ -493,6 +497,9 @@ proc ObjectSettingsWindow.EditObject uses ebx, pObject
     stdcall GeometryObject.GetEditableProperties
 
     stdcall ObjectSettingsWindow._AddControls, [hWnd], eax
+
+    lea eax, [WorkArea]
+    invoke SystemParametersInfoA, SPI_GETWORKAREA, 0, eax, 0
 
     ; uFlags
     push SWP_NOZORDER or SWP_SHOWWINDOW

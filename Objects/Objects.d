@@ -16,6 +16,9 @@ include 'GeometryObject.d'
 Objects.DrawProcedures dd Point.Draw, Segment.Draw, CircleWithCenter.Draw, Line.Draw, EllipseObj.Draw, PolylineObj.Draw, PolygonObj.Draw, \
                           Parabola.Draw, Intersection.Draw, AngleBisector.Draw, Perpendicular.Draw, PerpendicularBisector.Draw
 
+Objects.UpdateProcedures dd 0, Segment.Update, 0, Line.Update, 0, 0, 0, 0, 0, AngleBisector.Update, Perpendicular.Update, PerpendicularBisector.Update
+
+
 Objects.IsOnPositionProcedures dd Point.IsOnPosition, Segment.IsOnPosition, CircleWithCenter.IsOnPosition, \
                                   Line.IsOnPosition, EllipseObj.IsOnPosition, PolylineObj.IsOnPosition, \
                                   PolygonObj.IsOnPosition, Parabola.IsOnPosition, Intersection.IsOnPosition, \

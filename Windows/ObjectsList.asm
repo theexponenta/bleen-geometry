@@ -18,6 +18,10 @@ proc ObjectsListWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lparam
     je .Wmmousewheel
     cmp eax, WM_SIZE
     je .Wmsize
+    cmp eax, WM_LBUTTONDOWN
+    je .Wmlbuttondown
+    cmp eax, WM_LBUTTONDBLCLK
+    je .Wmlbuttondblclk
 
     invoke DefWindowProc, [hWnd], [wmsg], [wparam], [lparam]
     jmp .Return
@@ -34,16 +38,14 @@ proc ObjectsListWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lparam
         invoke CreateSolidBrush, 0x00F0F0F0
         mov [ObjectsListWindow.hBackgroundBrush], eax
 
-        xor eax, eax
-        jmp .Return
+        jmp .Return_0
 
     .Wmpaint:
         invoke BeginPaint, [hWnd], ObjectsListWindow.PaintStruct
         stdcall ObjectsListWindow._Paint, eax
         invoke EndPaint, [hWnd], ObjectsListWindow.PaintStruct
 
-        xor eax, eax
-        jmp .Return
+        jmp .Return_0
 
     .Wmvscroll:
         movzx eax, word [wparam]
@@ -72,8 +74,7 @@ proc ObjectsListWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lparam
 
         stdcall ObjectsListWindow._SetScroll, ecx
 
-        xor eax, eax
-        jmp .Return
+        jmp .Return_0
 
     .Wmmousewheel:
         mov ecx, ObjectsListWindow.ScrollStep
@@ -87,8 +88,7 @@ proc ObjectsListWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lparam
         add ecx, [ObjectsListWindow.CurrentScroll]
         stdcall ObjectsListWindow._SetScroll, ecx
 
-        xor eax, eax
-        jmp .Return
+        jmp .Return_0
 
     .Wmsize:
         mov [ScrollbarInfo.cbSize], sizeof.SCROLLBARINFO
@@ -103,8 +103,32 @@ proc ObjectsListWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lparam
         stdcall ObjectsListWindow._SetScrollPageAndRange
         stdcall ObjectsListWindow.Redraw
 
-        xor eax, eax
-        jmp .Return
+        jmp .Return_0
+
+    .Wmlbuttondown:
+        movzx edx, byte [lparam]
+        cmp edx, ObjectsListWindow.VisibilityCircleSectionWidth
+        ja .Return_0
+
+        movzx eax, word [lparam + 2]
+        stdcall ObjectsListWindow._GetIndexByYPosition, eax
+        stdcall ObjectsListWindow._ToggleHideObject, eax
+        stdcall DrawArea.Redraw
+        stdcall ObjectsListWindow.Redraw
+
+        jmp .Return_0
+
+    .Wmlbuttondblclk:
+        movzx edx, byte [lparam]
+        cmp edx, ObjectsListWindow.VisibilityCircleSectionWidth
+        jb .Return_0
+
+        movzx eax, word [lparam + 2]
+        stdcall ObjectsListWindow._GetIndexByYPosition, eax
+        stdcall ObjectsListWindow._GetObjectByIndex, eax
+        stdcall ObjectSettingsWindow.EditObject, eax
+
+        jmp .Return_0
 
     .Wmdestroy:
         invoke DeleteObject, [ObjectsListWindow.hVisibilityCirclePen]
@@ -113,9 +137,11 @@ proc ObjectsListWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lparam
         invoke DeleteObject, [ObjectsListWindow.hSeparatorPen]
         invoke DeleteObject, [ObjectsListWindow.hBackgroundBrush]
 
-        xor eax, eax
-        jmp .Return
+        jmp .Return_0
 
+
+    .Return_0:
+    xor eax, eax
 
     .Return:
     ret
@@ -185,6 +211,46 @@ proc ObjectsListWindow._SetScrollPageAndRange
 
     lea eax, [ScrollInfo]
     invoke SetScrollInfo, [ObjectsListWindow.hWnd], SB_VERT, eax, TRUE
+
+    ret
+endp
+
+
+proc ObjectsListWindow._GetIndexByYPosition, YPos
+    xor edx, edx
+    mov eax, [YPos]
+    add eax, [ObjectsListWindow.CurrentScroll]
+    mov ecx, ObjectsListWindow.ListItemHeight
+    div ecx
+
+    ret
+endp
+
+
+; Returns pointer to object
+proc ObjectsListWindow._GetObjectByIndex uses ebx, Index
+    mov eax, [Index]
+
+    cmp eax, [Points.Length]
+    jae @F
+
+    imul eax, eax, sizeof.Point
+    add eax, [Points.Ptr]
+    jmp .Return
+
+    @@:
+    sub eax, [Points.Length]
+    mov ebx, Objects
+    stdcall HeterogenousVector.PtrByIndex, eax
+
+    .Return:
+    ret
+endp
+
+
+proc ObjectsListWindow._ToggleHideObject, Index
+    stdcall ObjectsListWindow._GetObjectByIndex, [Index]
+    xor byte [eax + GeometryObject.IsHidden], 1
 
     ret
 endp

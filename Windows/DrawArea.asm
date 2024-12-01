@@ -309,18 +309,23 @@ proc DrawArea.Redraw uses ebx edi
     mov ebx, [Objects.Ptr]
 
     .DrawLoop:
-        cmp byte [ebx + GeometryObject.IsHidden], 0
-        jne .NextIteration
-
         push ecx
+        cmp byte [ebx + GeometryObject.IsHidden], 0
+        je @F
+
+        stdcall GeometryObject.Update
+        jmp .NextIteration
+
+        @@:
+
         movzx eax, byte [ebx + GeometryObject.Type]
         dec eax
         shl eax, 2
         add eax, Objects.DrawProcedures
         stdcall dword [eax], [DrawArea.MainBufferDC]
-        pop ecx
 
         .NextIteration:
+        pop ecx
         add ebx, [edi]
         add edi, HeterogenousVector.BytesForElementSize
         loop .DrawLoop

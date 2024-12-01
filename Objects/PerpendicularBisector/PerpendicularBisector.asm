@@ -18,16 +18,11 @@ proc PerpendicularBisector.Create, Id, pName, pCaption, Point1Id, Point2id, Widt
 endp
 
 
-proc PerpendicularBisector.Draw, hDC
+proc PerpendicularBisector.Update
     locals
         Point1 POINT ?
         Point2 POINT ?
         CenterPoint POINT ?
-
-        BorderPoint1 POINT ?
-        BorderPoint2 POINT ?
-
-        SelectedWidth dd ?
 
         Two dd 2f
     endl
@@ -73,7 +68,7 @@ proc PerpendicularBisector.Draw, hDC
     mov [ebx + PerpendicularBisector.Vector.Point2.x], eax
     fstp st0
     fstp st0
-    jmp .DrawLine
+    jmp .Return
 
     @@:
     mov [ebx + PerpendicularBisector.Vector.Point2.x], 0f
@@ -82,21 +77,34 @@ proc PerpendicularBisector.Draw, hDC
     fadd st0, st1
     fstp [ebx + PerpendicularBisector.Vector.Point2.y]
 
-    .DrawLine:
+    .Return:
     fstp st0
     fstp st0
+    ret
+endp
 
-    stdcall Main.ToScreenPosition, [CenterPoint.x], [CenterPoint.y]
-    mov [CenterPoint.x], edx
-    mov [CenterPoint.y], eax
+
+proc PerpendicularBisector.Draw, hDC
+    locals
+        BorderPoint1 POINT ?
+        BorderPoint2 POINT ?
+
+        SelectedWidth dd ?
+    endl
+
+    stdcall PerpendicularBisector.Update
+
+    lea edx, [BorderPoint1]
+    lea eax, [BorderPoint2]
+    push eax edx
+
+    stdcall Main.ToScreenPosition, [ebx + PerpendicularBisector.Vector.Point1.x], [ebx + PerpendicularBisector.Vector.Point1.y]
+    push eax edx
 
     stdcall Main.ToScreenPosition, [ebx + PerpendicularBisector.Vector.Point2.x], [ebx + PerpendicularBisector.Vector.Point2.y]
+    push eax edx
 
-    lea ecx, [BorderPoint2]
-    push ecx
-    lea ecx, [BorderPoint1]
-    push ecx
-    stdcall Line.GetLineBorderPoints, [CenterPoint.x], [CenterPoint.y], edx, eax ; Other 2 arguments are pushed above
+    stdcall Line.GetLineBorderPoints ; All the 2 arguments are pushed above
 
     cmp [ebx + PerpendicularBisector.IsSelected], 0
     je @F
