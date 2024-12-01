@@ -3,13 +3,21 @@
 proc ObjectSettingsWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lparam
     mov eax, [wmsg]
 
+    cmp eax, WM_CREATE
+    je .Wmcreate
     cmp eax, WM_HSCROLL
     je .Wmhscroll
     cmp eax , WM_COMMAND
     je .Wmcommand
+    cmp eax, WM_CLOSE
+    je .Wmclose
 
     invoke DefWindowProc, [hWnd], [wmsg], [wparam], [lparam]
     jmp .Return
+
+    .Wmcreate:
+        invoke EnableWindow, [MainWindow.hwnd], FALSE
+        jmp .Return_0
 
     .Wmhscroll:
         stdcall ObjectSettingsWindow._UpdateTrackbarValueStaticControl, [lparam]
@@ -21,9 +29,16 @@ proc ObjectSettingsWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lpara
         jne .Return_0
         mov byte [ObjectsListWindow.NeedsRedraw], 1
         stdcall ObjectSettingsWindow._Submit
+        invoke EnableWindow, [MainWindow.hwnd], TRUE
         stdcall DrawArea.Redraw
         stdcall ObjectsListWindow.Redraw
         invoke DestroyWindow, [hWnd]
+        jmp .Return_0
+
+    .Wmclose:
+        invoke EnableWindow, [MainWindow.hwnd], TRUE
+        invoke DestroyWindow, [hWnd]
+        jmp .Return_0
 
     .Return_0:
     xor eax, eax
@@ -488,7 +503,7 @@ proc ObjectSettingsWindow.EditObject uses ebx, pObject
     stdcall Vector.Clear
 
     invoke CreateWindowEx, 0, ObjectSettingsWindow.wcexClass.ClassName, ObjectSettingsWindow.Title, \
-                           WS_OVERLAPPEDWINDOW or WS_POPUP, 0, 0, 0, 0, \
+                           WS_OVERLAPPED or WS_CAPTION or WS_SYSMENU or WS_POPUP, 0, 0, 0, 0, \
                            [DrawArea.hwnd], NULL, [hInstance], NULL
 
     mov [hWnd], eax
