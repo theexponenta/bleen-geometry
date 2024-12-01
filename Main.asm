@@ -105,19 +105,12 @@ proc WinMain
 
     lea edi, [Msg]
     .MessageLoop:
-        invoke PeekMessage, edi, NULL, 0, 0, PM_NOREMOVE
-        test eax, eax
-        jz .NoMessages
-
         invoke GetMessage, edi, NULL, 0, 0
         test eax, eax
         jz .EndLoop
 
         invoke TranslateMessage, edi
         invoke DispatchMessage, edi
-        jmp .MessageLoop
-
-    .NoMessages:
         jmp .MessageLoop
 
     .Error:
