@@ -13,4 +13,5 @@ include 'Intersection/Intersection.inc'
 include 'AngleBisector/AngleBisector.inc'
 include 'Perpendicular/Perpendicular.inc'
 include 'PerpendicularBisector/PerpendicularBisector.inc'
+include 'ParallelLine/ParallelLine.inc'
 

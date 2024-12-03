@@ -258,3 +258,16 @@ proc Main.AddPerpendicularBisector uses ebx, Point1Id, Point2Id
 
     ret
 endp
+
+
+proc Main.AddParallelLine uses ebx, PointId, LineObjectId
+    local NewParallelLine ParallelLine ?
+
+    lea ebx, [NewParallelLine]
+    stdcall ParallelLine.Create, [NextObjectId], 0, 0, [PointId], [LineObjectId], \
+                                  GeometryObject.DefaultLineWidth, GeometryObject.DefaultLineColor
+
+    stdcall Main.AddObject, ebx, sizeof.ParallelLine
+
+    ret
+endp

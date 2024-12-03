@@ -912,7 +912,8 @@ section '.rsrc' resource data readable
              TOOL_INTERSECTION, LANG_NEUTRAL, intersection_icon, \
              TOOL_ANGLE_BISECTOR, LANG_NEUTRAL, angle_bisector_icon, \
              TOOL_PERPENDICULAR, LANG_NEUTRAL, perpendicular_icon, \
-             TOOL_PERPENDICULAR_BISECTOR, LANG_NEUTRAL, perpendicular_bisector_icon
+             TOOL_PERPENDICULAR_BISECTOR, LANG_NEUTRAL, perpendicular_bisector_icon, \
+             TOOL_PARALLEL_LINE, LANG_NEUTRAL, parallel_line_icon
 
     bitmap move_icon, 'icons/move.bmp'
     bitmap point_icon, 'icons/point.bmp'
@@ -927,3 +928,4 @@ section '.rsrc' resource data readable
     bitmap angle_bisector_icon, 'icons/angle_bisector_icon.bmp'
     bitmap perpendicular_icon, 'icons/perpendicular_icon.bmp'
     bitmap perpendicular_bisector_icon, 'icons/perpendicular_bisector_icon.bmp'
+    bitmap parallel_line_icon, 'icons/parallel_line_icon.bmp'
