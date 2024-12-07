@@ -4,12 +4,14 @@ DrawArea.hwnd dd ?
 
 DrawArea.hDC dd ?
 DrawArea.MainBufferDC dd ?
-DrawArea.AxesGridBufferDC dd ?
 
 DrawArea.PaintStruct PAINTSTRUCT ?
 DrawArea.Width dd ?
 DrawArea.Height dd ?
 DrawArea.Rect RECT ?
+
+DrawArea.PrevRedrawPoint POINT 0f, 0f
+DrawArea.MinMoveDistance dd 5f
 
 DrawArea.MainPopupMenu.Handle dd ?
 DrawArea.MainPopupMenu.Commands.ShowAxes = 1

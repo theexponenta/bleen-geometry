@@ -14,4 +14,4 @@ include 'AngleBisector/AngleBisector.inc'
 include 'Perpendicular/Perpendicular.inc'
 include 'PerpendicularBisector/PerpendicularBisector.inc'
 include 'ParallelLine/ParallelLine.inc'
-
+include 'Plot/Plot.inc'

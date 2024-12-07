@@ -35,6 +35,13 @@ proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
 
     .Wmcommand:
         movzx eax, word [wparam]
+        cmp eax, TOOL_PLOT
+        jne @F
+
+        stdcall PlotEquationInputWindow.Show
+        jmp .Return_0
+
+        @@:
         mov [CurrentToolId], eax
         mov [CurrentStateId], 1
         stdcall Main.UnselectObjects
@@ -162,7 +169,7 @@ proc MainWindow.CreateToolbar uses esi edi ebx, hwnd
          cmp ecx, MainWindow.Toolbar.ButtonsCount
          jb .AddImagesLoop
 
-     invoke CreateWindowEx, 0, TOOLBARCLASSNAME, NULL, WS_CHILD or WS_VISIBLE, \
+     invoke CreateWindowEx, 0, TOOLBARCLASSNAME, NULL, WS_CHILD or WS_VISIBLE or TBSTYLE_FLAT, \
                             0, 0, 0, 0, [hwnd], NULL, [hInstance], NULL
      mov [MainWindow.Toolbar.hwnd], eax
      mov esi, eax

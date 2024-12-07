@@ -24,9 +24,9 @@ proc ObjectSettingsWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lpara
         jmp .Return_0
 
     .Wmcommand:
-        mov eax, [wparam]
-        cmp eax, ObjectSettingsWindow.Buttons.OK.hMenu
+        mov [wparam], ObjectSettingsWindow.Buttons.OK.hMenu
         jne .Return_0
+
         mov byte [ObjectsListWindow.NeedsRedraw], 1
         stdcall ObjectSettingsWindow._Submit
         invoke EnableWindow, [MainWindow.hwnd], TRUE

@@ -7,10 +7,12 @@ include './Equates/Winuser.inc'
 include 'DataStructures/Vector.inc'
 include 'DataStructures/HeterogenousVector.inc'
 include 'DataStructures/LinkedList.inc'
+include 'DataStructures/ByteArray.inc'
 include 'Objects/Objects.inc'
 include 'ObjectsAddProc.asm'
 include 'Tools/Tools.inc'
 include 'Windows/ObjectSettings.inc'
+include 'Utils/MathParser/MathParser.inc'
 
 
 section '.text' code readable executable
@@ -20,15 +22,15 @@ proc WinMain
     local Msg MSG
     local CW dw ?
 
+    invoke GetProcessHeap
+    mov [hProcessHeap], eax
+
     fstcw [CW]
     mov ax, [CW]
     and ax, 1111_1100_1111_1111b
     or ax, 11b shl 8
     mov [CW], ax
     fldcw [CW]
-
-    invoke GetProcessHeap
-    mov [hProcessHeap], eax
     
     mov ebx, Objects
     stdcall HeterogenousVector.Create, 4096
@@ -91,6 +93,14 @@ proc WinMain
     mov [WindowClass.style], 0
     mov [WindowClass.lpfnWndProc], ObjectSettingsWindow.WindowProc
     mov [WindowClass.lpszClassName], ObjectSettingsWindow.wcexClass.ClassName
+    mov [WindowClass.hbrBackground], COLOR_BTNFACE + 1
+    invoke RegisterClassEx, WindowClass
+    test eax, eax
+    jz .Error
+
+    mov [WindowClass.style], 0
+    mov [WindowClass.lpfnWndProc], PlotEquationInputWindow.WindowProc
+    mov [WindowClass.lpszClassName], PlotEquationInputWindow.wcexClass.ClassName
     mov [WindowClass.hbrBackground], COLOR_BTNFACE + 1
     invoke RegisterClassEx, WindowClass
     test eax, eax
@@ -804,18 +814,25 @@ endp
 include 'Utils/Draw.asm'
 include 'Utils/Math.asm'
 include 'Utils/Strings.asm'
+include 'Utils/MathParser/MathParser.asm'
 include 'DataStructures/Vector.asm'
 include 'DataStructures/HeterogenousVector.asm'
 include 'DataStructures/LinkedList.asm'
+include 'DataStructures/ByteArray.asm'
 include 'Windows/Main.asm'
 include 'Windows/DrawArea.asm'
 include 'Windows/ObjectSettings.asm'
 include 'Windows/ObjectsList.asm'
+include 'Windows/PlotEquationInput.asm'
 include 'Objects/Objects.asm'
 include 'Tools/Tools.asm'
 
 
 section '.data' data readable writeable
+
+  RPN ByteArray ?
+  ;ExpressionStr db "e^(sin(x)*cos(x))", 0
+  ExpressionStr db "x^2", 0
 
   hInstance dd ?
   hProcessHeap dd ?
@@ -870,8 +887,10 @@ section '.data' data readable writeable
   include 'Windows/DrawArea.d'
   include 'Windows/ObjectSettings.d'
   include 'Windows/ObjectsList.d'
+  include 'Windows/PlotEquationInput.d'
   include 'Tools/Tools.d'
   include 'Objects/Objects.d'
+  include 'Utils/MathParser/MathParser.d'
 
 section '.idata' import data readable writeable
 
@@ -913,7 +932,8 @@ section '.rsrc' resource data readable
              TOOL_ANGLE_BISECTOR, LANG_NEUTRAL, angle_bisector_icon, \
              TOOL_PERPENDICULAR, LANG_NEUTRAL, perpendicular_icon, \
              TOOL_PERPENDICULAR_BISECTOR, LANG_NEUTRAL, perpendicular_bisector_icon, \
-             TOOL_PARALLEL_LINE, LANG_NEUTRAL, parallel_line_icon
+             TOOL_PARALLEL_LINE, LANG_NEUTRAL, parallel_line_icon, \
+             TOOL_PLOT, LANG_NEUTRAL, plot_icon
 
     bitmap move_icon, 'icons/move.bmp'
     bitmap point_icon, 'icons/point.bmp'
@@ -929,3 +949,4 @@ section '.rsrc' resource data readable
     bitmap perpendicular_icon, 'icons/perpendicular_icon.bmp'
     bitmap perpendicular_bisector_icon, 'icons/perpendicular_bisector_icon.bmp'
     bitmap parallel_line_icon, 'icons/parallel_line_icon.bmp'
+    bitmap plot_icon, 'icons/plot_icon.bmp'

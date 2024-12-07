@@ -7,10 +7,10 @@ MoveTool.PrevPoint POINT 0f, 0f
 MoveTool.WasMoved dd 0
 
 MoveTool.States.SelectObjects.Transitions dd WM_LBUTTONDOWN, MoveTool.SelectObjects, \
-                                            VK_DELETE, MoveTool.DeleteSelectedObjects, 0
+                                             VK_DELETE, MoveTool.DeleteSelectedObjects, 0
 
 MoveTool.States.MoveObjects.Transitions dd WM_MOUSEMOVE, MoveTool.MoveObjects, \
-                                          WM_LBUTTONUP, MoveTool.SetSelectObjects, 0
+                                           WM_LBUTTONUP, MoveTool.SetSelectObjects, 0
 
 MoveTool.States.TranslateCanvas.Transitions dd WM_MOUSEMOVE, MoveTool.TranslateCanvas, \
                                                WM_LBUTTONUP, MoveTool.SetSelectObjects, 0

@@ -48,30 +48,8 @@ proc DrawArea.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
         invoke CreateCompatibleDC, eax
         mov [DrawArea.MainBufferDC], eax
         invoke SetGraphicsMode, eax, GM_ADVANCED
-        ;invoke SetMapMode, [DrawArea.MainBufferDC], MM_ANISOTROPIC
-        ;mov edx, [DrawArea.Height]
-        ;neg edx
-        ;push edx
-        ;invoke SetViewportExtEx, [DrawArea.MainBufferDC], [DrawArea.Width], edx, NULL
-        ;pop edx
-        ;invoke SetWindowExtEx, [DrawArea.MainBufferDC], [DrawArea.Width], edx, NULL
-        ;invoke SetViewportOrgEx, [DrawArea.MainBufferDC], [WidthHalf], [HeightHalf], NULL
         invoke CreateCompatibleBitmap, [DrawArea.hDC], [DrawArea.Width], [DrawArea.Height]
         invoke SelectObject, [DrawArea.MainBufferDC], eax
-
-        invoke CreateCompatibleDC, [DrawArea.hDC]
-        mov [DrawArea.AxesGridBufferDC], eax
-        ;invoke SetMapMode, eax, MM_ANISOTROPIC
-        ;mov edx, [DrawArea.Height]
-        ;neg edx
-        ;push edx
-        ;invoke SetViewportExtEx, [DrawArea.AxesGridBufferDC], [DrawArea.Width], edx, NULL
-        ;pop edx
-        ;invoke SetWindowExtEx, [DrawArea.MainBufferDC], [DrawArea.Width], edx, NULL
-        ;invoke SetViewportOrgEx, [DrawArea.AxesGridBufferDC], [WidthHalf], [HeightHalf], NULL
-        invoke CreateCompatibleBitmap, [DrawArea.hDC], [DrawArea.Width], [DrawArea.Height]
-        invoke SelectObject, [DrawArea.AxesGridBufferDC], eax
-        stdcall DrawArea.Clear, [DrawArea.AxesGridBufferDC]
 
         stdcall DrawArea.CreateMainPopupMenu
         stdcall DrawArea.CreateObjectPopupMenu
@@ -161,25 +139,37 @@ proc DrawArea.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
         add eax, [DrawArea.Rect.left]
         add edx, [DrawArea.Rect.top]
         invoke TrackPopupMenu, ecx, TPM_RIGHTALIGN or TPM_TOPALIGN, eax, edx, 0, [hwnd], 0
+        jmp .Return_0
 
-    .Wmlbuttondown:
-    .Wmlbuttonup:
     .Wmmousemove:
-         mov eax, [wmsg]
-         mov [TransitionMessage], eax
-
          movzx eax, word [lparam]
          call Math.IntToFloat
-         mov [CurrentMouseScreenPoint.X], eax
          mov edx, eax
 
          movzx eax, word [lparam + 2]
          call Math.IntToFloat
+
+         mov [CurrentMouseScreenPoint.X], edx
          mov [CurrentMouseScreenPoint.Y], eax
+
+         stdcall Math.Distance, edx, eax, [DrawArea.PrevRedrawPoint.x], [DrawArea.PrevRedrawPoint.y]
+
+         fld [DrawArea.MinMoveDistance]
+         fcomip st0, st1
+         fstp st0
+         ja .Return_0
+
+         mov [DrawArea.PrevRedrawPoint.x], edx
+         mov [DrawArea.PrevRedrawPoint.y], eax
 
          stdcall Main.ToPlanePosition, edx, eax
          mov [CurrentMousePlanePoint.X], edx
          mov [CurrentMousePlanePoint.Y], eax
+
+    .Wmlbuttondown:
+    .Wmlbuttonup:
+         mov eax, [wmsg]
+         mov [TransitionMessage], eax
 
      .Transition:
      stdcall Main.Transition, [TransitionMessage]
@@ -280,25 +270,16 @@ endp
 proc DrawArea.Redraw uses ebx edi
     stdcall DrawArea.Clear, [DrawArea.MainBufferDC]
 
-    cmp [AxesAndGridNeedRedraw], 0
-    je .CopyToMainBuffer
-
-    mov [AxesAndGridNeedRedraw], 0
-    stdcall DrawArea.Clear, [DrawArea.AxesGridBufferDC]
-
     cmp [ShowGrid], 0
     je @F
 
-    stdcall DrawArea.DrawGrid, [DrawArea.AxesGridBufferDC]
+    stdcall DrawArea.DrawGrid, [DrawArea.MainBufferDC]
 
     @@:
     cmp [ShowAxes], 0
-    je .CopyToMainBuffer
+    je .DrawObjects
 
-    stdcall DrawArea.DrawAxes, [DrawArea.AxesGridBufferDC]
-
-    .CopyToMainBuffer:
-    invoke BitBlt, [DrawArea.MainBufferDC], 0, 0, [DrawArea.Width], [DrawArea.Height], [DrawArea.AxesGridBufferDC], 0, 0, SRCCOPY
+    stdcall DrawArea.DrawAxes, [DrawArea.MainBufferDC]
 
     .DrawObjects:
     mov ecx, [Objects.Sizes.Length]
