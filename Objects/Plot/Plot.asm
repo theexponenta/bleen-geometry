@@ -40,9 +40,10 @@ proc Plot.Draw uses edi esi, hDC
     invoke SelectObject, [hDC], eax
 
     ; esi
-    ; bit 0 - 1 is current point visible, 0 otherwise
-    ; bit 1 - 0 if no are pushed yet, 1 otherwise
+    ; bit 0 - 1 if current point visible, 0 otherwise
+    ; bit 1 - 0 if no points are pushed yet, 1 otherwise
     ; bit 2 - if object is selected
+    ; bit 3 - 1 if current point is undefined, 0 otherwise
     mov esi, 1
 
     cmp [ebx + Plot.IsSelected], 0
@@ -59,6 +60,7 @@ proc Plot.Draw uses edi esi, hDC
     @@:
     mov ecx, [DrawArea.Width]
     sub ecx, [ObjectsListWindow.Width]
+    shr ecx, 1
     xor edi, edi
 
     fild [DrawArea.Height]
@@ -77,8 +79,12 @@ proc Plot.Draw uses edi esi, hDC
         pop ecx
 
         fstsw ax
-        test ax, 1
         fclex
+        and ax, 1
+        cwde
+        shl eax, 3
+        or esi, eax
+        test eax, eax
         jnz .CurrentPointInvisible
 
         fmul [Scale]
@@ -91,8 +97,12 @@ proc Plot.Draw uses edi esi, hDC
         fcomi st0, st2
         ja .CurrentPointInvisible
 
-        cmp esi, 10b
-        jne @F
+        ; If current point is visible, push prev point if:
+        ;     prev point is invisible - bit0=0
+        ;     prev point is defined - bit3=0
+        mov edx, esi
+        test edx, 1001b
+        jnz @F
 
         push [PrevYScreen]
         push [PrevXScreen]
@@ -104,6 +114,7 @@ proc Plot.Draw uses edi esi, hDC
         add edi, 1
 
         or esi, 11b
+        and esi, not 1000b
         jmp .NextIteration
 
         .CurrentPointInvisible:
@@ -146,8 +157,7 @@ proc Plot.Draw uses edi esi, hDC
         .NextIteration:
         fistp [PrevYScreen]
         fist [PrevXScreen]
-        fld1
-        faddp
+        fadd [Plot.ScreenStep]
         sub ecx, 1
         jnz .DrawLoop
 
