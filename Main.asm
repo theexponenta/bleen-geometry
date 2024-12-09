@@ -830,10 +830,6 @@ include 'Tools/Tools.asm'
 
 section '.data' data readable writeable
 
-  RPN ByteArray ?
-  ;ExpressionStr db "e^(sin(x)*cos(x))", 0
-  ExpressionStr db "x^2", 0
-
   hInstance dd ?
   hProcessHeap dd ?
 
@@ -844,6 +840,7 @@ section '.data' data readable writeable
   STATICCLASSNAME du "static", 0
   EDITCLASSNAME du "edit", 0
   BUTTONCLASSNAME du "button", 0
+  EDITCLASSNAME_ASCII db "edit", 0
 
   WindowClass WNDCLASSEX sizeof.WNDCLASSEX, 0, NULL, 0, 0, NULL, NULL, NULL, \
                          COLOR_BTNFACE + 1, NULL, NULL

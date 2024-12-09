@@ -1,5 +1,5 @@
 
-proc Point.Create Id, pName, pCaption, X, Y, Color, Size, ParentObjectId
+proc Point.Create uses ebx, Id, pName, pCaption, X, Y, Color, Size, pParentObject
     stdcall GeometryObject.Create, [Id], OBJ_POINT, [pName], [pCaption]
 
     mov eax, [X]
@@ -17,10 +17,19 @@ proc Point.Create Id, pName, pCaption, X, Y, Color, Size, ParentObjectId
     mov eax, [Size]
     mov [ebx + Point.Size], eax
 
-    mov eax, [ParentObjectId]
-    mov [ebx + Point.ParentObjectId], eax
     mov [ebx + Point.IntersectionId], 0
+    mov [ebx + Point.ParentObjectId], 0
 
+    mov eax, [pParentObject]
+    test eax, eax
+    jz .Return
+
+    mov edx, [eax + GeometryObject.Id]
+    mov [ebx + Point.ParentObjectId], edx
+    mov ebx, eax
+    stdcall GeometryObject.AttachPoint, [Id]
+
+    .Return:
     ret
 endp
 
@@ -149,22 +158,37 @@ endp
 
 ; edx - dX
 ; ecx - dY
-proc Point.Move
+proc Point.Move uses edx ecx
     locals
-        delta dd ?
+        Delta dd ?
+        NewX dd ?
+        NewY dd ?
     endl
 
     cmp [ebx + Point.IntersectionId], 0
     jne .Return
 
-    mov [delta], edx
-    fld [delta]
+    mov [Delta], edx
+    fld [Delta]
     fadd [ebx + Point.X]
-    fstp [ebx + Point.X]
-    mov [delta], ecx
-    fld [delta]
+    fstp [NewX]
+    mov edx, [NewX]
+    mov [Delta], ecx
+    fld [Delta]
     fadd [ebx + Point.Y]
-    fstp [ebx + Point.Y]
+    fstp [NewY]
+    mov ecx, [NewY]
+
+    cmp [ebx + Point.ParentObjectId], 0
+    je .WriteNewCoordinates
+
+    stdcall Point.AdjustAttachedPoint, edx, ecx
+    test eax, eax
+    jz .Return
+
+    .WriteNewCoordinates:
+    mov [ebx + Point.X], edx
+    mov [ebx + Point.Y], ecx
 
     .Return:
     ret
@@ -200,7 +224,170 @@ proc Point.IsOnPosition X, Y
 endp
 
 
+
 proc Point.ToString, pBuffer
     cinvoke sprintf, [pBuffer], Point.StrFormat, [ebx + Point.pName]
+    ret
+endp
+
+
+proc Point.Update
+    cmp [ebx + Point.ParentObjectId], 0
+    je .Return
+
+    stdcall Point.AdjustAttachedPoint, [ebx + Point.X], [ebx + Point.Y]
+    test eax, eax
+    jz .Return
+
+    mov [ebx + Point.X], edx
+    mov [ebx + Point.Y], ecx
+
+    .Return:
+    ret
+endp
+
+
+proc Point.AdjustAttachedPoint, X, Y
+    locals
+       pParentObject dd ?
+    endl
+
+    stdcall Main.GetObjectById, [ebx + Point.ParentObjectId]
+    test eax, eax
+    jz .DetachPoint
+
+    mov [pParentObject], eax
+
+    movzx edx, byte [eax + GeometryObject.Type]
+    stdcall GeometryObject.IsLineObjectType, edx
+    test eax, eax
+    jz @F
+
+    stdcall Point._AdjustLineObjectPoint, [pParentObject], [X], [Y]
+    jmp .Return
+
+    @@:
+    cmp edx, OBJ_POLYGON
+    jne @F
+
+    stdcall Point._AdjustPolygonPoint, [pParentObject], [X], [Y]
+    jmp .Return
+
+    @@:
+    cmp edx, OBJ_CIRCLE_WITH_CENTER
+    jne @F
+
+    stdcall Point._AdjustCirclePoint, [pParentObject], [X], [Y]
+    jmp .Return
+
+    @@:
+    .DetachPoint:
+    mov [ebx + Point.ParentObjectId], 0
+
+    .Return:
+    ret
+endp
+
+
+proc Point._AdjustLineObjectPoint uses ebx, pObject, X, Y
+    locals
+        SecondPrependicularPointY dd ?
+        AdjustedPoint POINT ?
+    endl
+
+    mov eax, [pObject]
+
+    fld [eax + Line.Point2.x]
+    fsub [eax + Line.Point1.x]
+    fld [eax + Line.Point2.y]
+    fsub [eax + Line.Point1.y]
+    fdivp
+    fmul [X]
+    fadd [Y]
+    fstp [SecondPrependicularPointY]
+
+    stdcall Math.IntersectLines, [eax + Line.Point1.x], [eax + Line.Point1.y],  [eax + Line.Point2.x], [eax + Line.Point2.y], \
+                                 [X], [Y], 0f, [SecondPrependicularPointY]
+
+
+    mov ebx, [pObject]
+    cmp byte [ebx + GeometryObject.Type], OBJ_SEGMENT
+    jne @F
+
+    stdcall Segment.IsPointOnSegment
+    test eax, eax
+    jz .Return
+
+    @@:
+    fst [AdjustedPoint.y]
+    fxch
+    fst [AdjustedPoint.x]
+
+    mov edx, [AdjustedPoint.x]
+    mov ecx, [AdjustedPoint.y]
+    mov eax, 1
+
+    .Return:
+    fstp st0
+    fstp st0
+    ret
+endp
+
+
+proc Point._AdjustPolygonPoint uses ebx, pObject, X, Y
+    mov ebx, [pObject]
+    stdcall PolygonObj.IsOnPosition, [X], [Y]
+    test eax, eax
+    jz .Return
+
+    mov edx, [X]
+    mov ecx, [Y]
+    mov eax, 1
+
+    .Return:
+    ret
+endp
+
+
+proc Point._AdjustCirclePoint uses esi, pObject, X, Y
+    locals
+        CenterPoint POINT ?
+        NewPoint POINT ?
+    endl
+
+    mov esi, [pObject]
+    stdcall Main.GetObjectById, [esi + CircleWithCenter.CenterPointId]
+
+    mov edx, [eax + Point.X]
+    mov ecx, [eax + Point.Y]
+    mov [CenterPoint.x], edx
+    mov [CenterPoint.y], ecx
+
+    stdcall Main.GetObjectById, [esi + CircleWithCenter.SecondPointId]
+
+    mov edx, [CenterPoint.x]
+    mov ecx, [CenterPoint.y]
+    stdcall Math.Distance, edx, ecx, [eax + Point.X], [eax + Point.Y]
+    stdcall Math.Distance, edx, ecx, [X], [Y]
+    fdivp
+
+    fld [X]
+    fsub [CenterPoint.x]
+    fmul st0, st1
+    fadd [CenterPoint.x]
+    fstp [NewPoint.x]
+
+    fld [Y]
+    fsub [CenterPoint.y]
+    fmul st0, st1
+    fadd [CenterPoint.y]
+    fstp [NewPoint.y]
+
+    fstp st0
+
+    mov edx, [NewPoint.x]
+    mov ecx, [NewPoint.y]
+
+    .Return:
     ret
 endp

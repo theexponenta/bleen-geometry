@@ -31,71 +31,34 @@ proc Intersection.GetIntersectionProc uses esi edi, Obj1Type, Obj2Type
 endp
 
 
-; st0 - Y-coordinate of instersection point
-; st1 - X-coordinate of instersection point
-proc Intersection._CheckIntersectionPointOnSegment, pSegment
-    mov eax, [pSegment]
-    fld [eax + Segment.Point1.x]
-    fld [eax + Segment.Point2.x]
-    call Math.FPUSwapMax
-    fld [eax + Segment.Point1.y]
-    fld [eax + Segment.Point2.y]
-    call Math.FPUSwapMax
-
-    xor eax, eax
-
-    fcomi st0, st4
-    jb .Return
-
-    fxch st1
-    fcomi st0, st4
-    ja .Return
-
-    fxch st2
-    fcomi st0, st5
-    jb .Return
-
-    fxch st3
-    fcomi st0, st5
-    ja .Return
-
-    mov eax, 1
-
-    .Return:
-    fstp st0
-    fstp st0
-    fstp st0
-    fstp st0
-    ret
-endp
-
-
-proc Intersection._IntersectLineLikeObjects, pLineLikeObj1, pLineLikeObj2
+proc Intersection._IntersectLineLikeObjects uses esi, pLineLikeObj1, pLineLikeObj2
     locals
         IntersectionPoint POINT ?
     endl
 
+    mov esi, ebx
     mov eax, [pLineLikeObj1]
     mov edx, [pLineLikeObj2]
 
     stdcall Math.IntersectLines, [eax + Line.Point1.x], [eax + Line.Point1.y], [eax + Line.Point2.x], [eax + Line.Point2.y], \
                                  [edx + Line.Point1.x], [edx + Line.Point1.y], [edx + Line.Point2.x], [edx + Line.Point2.y]
 
-    mov eax, [pLineLikeObj1]
-    cmp byte [eax + GeometryObject.Type], OBJ_SEGMENT
+    mov ebx, [pLineLikeObj1]
+    cmp byte [ebx + GeometryObject.Type], OBJ_SEGMENT
     jne @F
 
-    stdcall Intersection._CheckIntersectionPointOnSegment, eax
+
+    stdcall Segment.IsPointOnSegment
 
     test eax, eax
     jz .HidePoint
 
     @@:
-    mov eax, [pLineLikeObj2]
-    cmp byte [eax + GeometryObject.Type], OBJ_SEGMENT
+    mov ebx, [pLineLikeObj2]
+    cmp byte [ebx + GeometryObject.Type], OBJ_SEGMENT
     jne @F
 
-    stdcall Intersection._CheckIntersectionPointOnSegment, eax
+    stdcall Segment.IsPointOnSegment
 
     test eax, eax
     jz .HidePoint
@@ -105,11 +68,11 @@ proc Intersection._IntersectLineLikeObjects, pLineLikeObj1, pLineLikeObj2
     fxch
     fst [IntersectionPoint.x]
 
-    stdcall Main.SetIntersectionPoint, [ebx + Intersection.Id], 1, [IntersectionPoint.x], [IntersectionPoint.y]
+    stdcall Main.SetIntersectionPoint, [esi + Intersection.Id], 1, [IntersectionPoint.x], [IntersectionPoint.y]
     jmp .Return
 
     .HidePoint:
-    stdcall Main.HideIntersectionPoint, [ebx + Intersection.Id], 1
+    stdcall Main.HideIntersectionPoint, [esi + Intersection.Id], 1
 
     .Return:
     fstp st0

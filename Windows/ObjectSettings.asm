@@ -24,7 +24,7 @@ proc ObjectSettingsWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lpara
         jmp .Return_0
 
     .Wmcommand:
-        mov [wparam], ObjectSettingsWindow.Buttons.OK.hMenu
+        cmp [wparam], ObjectSettingsWindow.Buttons.OK.hMenu
         jne .Return_0
 
         mov byte [ObjectsListWindow.NeedsRedraw], 1
@@ -191,7 +191,7 @@ proc ObjectSettingsWindow._AddEditControl, hwnd, Property, FieldOffset, pText
         ControlHwnd dd ?
     endl
 
-    invoke CreateWindowEx, 0, EDITCLASSNAME, [pText], WS_VISIBLE or WS_CHILD or WS_BORDER, \
+    invoke CreateWindowExA, 0, EDITCLASSNAME_ASCII, [pText], WS_VISIBLE or WS_CHILD or WS_BORDER, \
                            ObjectSettingsWindow.PaddingLeft, [ObjectSettingsWindow.CurrentYOffset], ObjectSettingsWindow.EditControl.Width, \
                            ObjectSettingsWindow.EditControl.Height, [hwnd], NULL, [hInstance], NULL
     mov [ControlHwnd], eax
@@ -199,6 +199,7 @@ proc ObjectSettingsWindow._AddEditControl, hwnd, Property, FieldOffset, pText
     stdcall ObjectSettingsWindow._IncreaseYOffset, eax, ObjectSettingsWindow.OtherControlMarginBottom
     stdcall ObjectSettingsWindow._AddFieldInputControl, [ControlHwnd], [Property], [FieldOffset]
 
+    .Return:
     ret
 endp
 
@@ -447,13 +448,13 @@ proc ObjectSettingsWindow._Submit uses esi ebx
         mov byte [ebx + GeometryObject.IsHidden], dl
         jmp .NextIteration
 
+        @@:
         cmp eax, PROP_NAME
         jne @F
 
         lea eax, [StringBuffer + 4]
-        invoke GetWindowTextW, [esi + ObjectFieldInputControl.hWnd], eax, 65
+        invoke GetWindowTextA, [esi + ObjectFieldInputControl.hWnd], eax, 65
         mov dword [StringBuffer], eax
-        invoke GetLastError
         lea eax, [StringBuffer + 4]
         stdcall GeometryObject.SetName, eax
         jmp .NextIteration

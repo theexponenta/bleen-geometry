@@ -22,7 +22,7 @@ proc GeometryObject.Create uses ebx, Id, Type, pName, pCaption
 endp
 
 
-proc GeometryObject.AddAttachedPoint uses ebx, PointId
+proc GeometryObject.AttachPoint uses ebx, PointId
     add ebx, GeometryObject.AttachedPointsIds
     stdcall Vector.PushValue, [PointId]
 
@@ -43,25 +43,50 @@ endp
 ; edx - dX
 ; ecx - dY
 proc GeometryObject.Move uses ebx edi esi
-    mov esi, [ebx + GeometryObject.AttachedPointsIds.Length]
-    test esi, esi
-    jz @F
+    locals
+        AttachedPointsCount dd ?
+        pAttachedPoints dd ?
+    endl
 
+    mov esi, [ebx + GeometryObject.AttachedPointsIds.Length]
+    mov [AttachedPointsCount], esi
+    test esi, esi
+    jz .MoveObject
+
+    push ebx
     mov edi, [ebx + GeometryObject.AttachedPointsIds.Ptr]
+    mov eax, ebx
+    add eax, GeometryObject.AttachedPointsIds
+    mov [pAttachedPoints], eax
     .MoveLoop:
         mov eax, [edi]
         push ecx edx
         call Main.FindPointById
         pop edx ecx
+        test eax, eax
+        jnz @F
+
+        mov eax, [AttachedPointsCount]
+        sub eax, esi
+        mov ebx, [pAttachedPoints]
+        push ecx edx
+        stdcall Vector.DeleteByIndex, eax
+        pop edx ecx
+        jmp .NextIteration
+
+        @@:
         mov ebx, eax
         call Point.Move
-        add edi, 4
 
+        add edi, 4
+        .NextIteration:
         dec esi
         jnz .MoveLoop
 
-    @@:
-    movzx eax, byte[ebx + GeometryObject.Type]
+    pop ebx
+
+    .MoveObject:
+    movzx eax, byte [ebx + GeometryObject.Type]
     dec eax
     shl eax, 2
     add eax, Objects.MoveProcedures
@@ -232,15 +257,18 @@ proc GeometryObject.ToString, pBuffer
 endp
 
 
-proc GeometryObject.Destroy
+proc GeometryObject.Destroy uses ebx
     movzx eax, [ebx + GeometryObject.Type]
 
     cmp eax, OBJ_POLYGON
-    jne .Return
+    jne @F
 
     call PolygonObj.Destroy
 
-    .Return:
+    @@:
+    add ebx, GeometryObject.AttachedPointsIds
+    stdcall Vector.Destroy
+
     ret
 endp
 

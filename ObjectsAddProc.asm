@@ -8,7 +8,7 @@ endp
 
 ; X, Y - SCREEN!!! coordinates
 ; Returns pointer to added Point object
-proc Main.AddPoint, X, Y, ParentObjectId
+proc Main.AddPoint, X, Y, pParentObject
     stdcall Main.ToPlanePosition, [X], [Y]
     mov [X], edx
     mov [Y], eax
@@ -29,7 +29,7 @@ proc Main.AddPoint, X, Y, ParentObjectId
     mov [Y], eax
 
     @@:
-    stdcall Main._AddPoint, [X], [Y], [ParentObjectId], Point.DefaultColor, Point.DefaultSize
+    stdcall Main._AddPoint, [X], [Y], [pParentObject], Point.DefaultColor, Point.DefaultSize
 
     ret
 endp
@@ -37,17 +37,17 @@ endp
 
 ; X, Y - plane coordinates
 ; Returns pointer to added Point object
-proc Main._AddPoint uses ebx, X, Y, ParentObjectId, Color, Width
+proc Main._AddPoint uses ebx, X, Y, pParentObject, Color, Width
     local NewPoint Point ?
 
     lea ebx, [NewPoint]
     mov eax, [NextPointNum]
     stdcall Point.PointNumToName
-    stdcall Point.Create, [NextObjectId], eax, 0, [X], [Y], [Color],[Width], [ParentObjectId]
+    stdcall Point.Create, [NextObjectId], eax, 0, [X], [Y], [Color],[Width], [pParentObject]
 
     push ebx
     mov ebx, Points
-    call Vector.Push
+    stdcall Vector.Push
 
     inc [NextObjectId]
     inc [NextPointNum]

@@ -73,6 +73,44 @@ proc Segment.Draw uses ebx edi, hdc
 endp
 
 
+; st0 - Y-coordinate of instersection point
+; st1 - X-coordinate of instersection point
+proc Segment.IsPointOnSegment
+    fld [ebx + Segment.Point1.x]
+    fld [ebx + Segment.Point2.x]
+    call Math.FPUSwapMax
+    fld [ebx + Segment.Point1.y]
+    fld [ebx + Segment.Point2.y]
+    call Math.FPUSwapMax
+
+    xor eax, eax
+
+    fcomi st0, st4
+    jb .Return
+
+    fxch st1
+    fcomi st0, st4
+    ja .Return
+
+    fxch st2
+    fcomi st0, st5
+    jb .Return
+
+    fxch st3
+    fcomi st0, st5
+    ja .Return
+
+    mov eax, 1
+
+    .Return:
+    fstp st0
+    fstp st0
+    fstp st0
+    fstp st0
+    ret
+endp
+
+
 proc Segment.IsOnPosition uses edi, X, Y
     locals
         X1 dd ?

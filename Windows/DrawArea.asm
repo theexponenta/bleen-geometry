@@ -255,6 +255,7 @@ proc DrawArea.DrawPoints uses ebx, hdc
        jne .NextIteration
 
         push ecx
+        stdcall Point.Update
         stdcall Point.Draw, [hdc]
         pop ecx
 
