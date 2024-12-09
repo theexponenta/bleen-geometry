@@ -251,7 +251,9 @@ proc DrawArea.DrawPoints uses ebx, hdc
     jz .Return
 
     .DrawLoop:
-       cmp byte [ebx + GeometryObject.IsHidden], 0
+       movzx eax, byte [ebx + GeometryObject.IsHidden]
+       movzx edx, [ebx + Point.IsHiddenByIntersection]
+       or eax, edx
        jne .NextIteration
 
         push ecx

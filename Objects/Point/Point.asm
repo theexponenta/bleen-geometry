@@ -19,6 +19,7 @@ proc Point.Create uses ebx, Id, pName, pCaption, X, Y, Color, Size, pParentObjec
 
     mov [ebx + Point.IntersectionId], 0
     mov [ebx + Point.ParentObjectId], 0
+    mov [ebx + Point.IsHiddenByIntersection], 0
 
     mov eax, [pParentObject]
     test eax, eax

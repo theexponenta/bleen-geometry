@@ -187,7 +187,7 @@ proc Main.SetIntersectionPoint uses esi edi, IntersectionId, PointIndex, X, Y
     mov [esi + Point.X], eax
     mov edx, [Y]
     mov [esi + Point.Y], edx
-    mov [esi + Point.IsHidden], 0
+    mov [esi + Point.IsHiddenByIntersection], 0
 
     .Return:
     ret
@@ -211,7 +211,7 @@ proc Main.HideIntersectionPoint uses esi edi, IntersectionId, PointIndex
         cmp eax, edi
         jne .NextIteration
 
-        mov [esi + Point.IsHidden], 1
+        mov byte [esi + Point.IsHiddenByIntersection], 1
         jmp .Return
 
         .NextIteration:

@@ -6,6 +6,7 @@ struct Point GeometryObject
     Y dd ?
     ParentObjectId dd ?
     IntersectionId dd ?
+    IsHiddenByIntersection db ?
 ends
 
 
