@@ -33,7 +33,7 @@ proc IntersectionTool.SelectObject uses esi
 
     mov eax, [IntersectionTool.Object1Id]
     xchg eax, [IntersectionTool.Object2Id]
-    mov [IntersectionTool.Object2Id], eax
+    mov [IntersectionTool.Object1Id], eax
     xchg ecx, edx
 
     @@:
