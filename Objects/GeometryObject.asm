@@ -30,12 +30,26 @@ proc GeometryObject.AttachPoint uses ebx, PointId
 endp
 
 
-; eax - Index
-; edx - Id
-proc GeometryObject.SetAttachedPoint
-    mov ecx, [ebx + GeometryObject.AttachedPointsIds.Ptr]
-    mov [ecx + eax*4], edx
+proc GeometryObject.DetachPoint uses ebx esi, PointId
+    mov esi, [ebx + GeometryObject.AttachedPointsIds.Ptr]
+    mov ecx, [ebx + GeometryObject.AttachedPointsIds.Length]
+    mov eax, [PointId]
 
+    xor edx, edx
+    .DetachLoop:
+        cmp [esi], eax
+        jne .NextIteration
+
+        add ebx, GeometryObject.AttachedPointsIds
+        stdcall Vector.DeleteByIndex, edx
+        jmp .Return
+
+        .NextIteration:
+        add esi, 4
+        add edx, 1
+        loop .DetachLoop
+
+    .Return:
     ret
 endp
 

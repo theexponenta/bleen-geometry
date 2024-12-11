@@ -244,6 +244,7 @@ proc Point.Update uses ebx esi
 
     mov [ebx + Point.X], edx
     mov [ebx + Point.Y], ecx
+    jmp .Return
 
     @@:
     cmp byte [ebx + Point.ConstructType], 0
@@ -278,6 +279,20 @@ proc Point.Update uses ebx esi
 endp
 
 
+proc Point.Detach uses ebx
+    stdcall Main.GetObjectById, [ebx + Point.ParentObjectId]
+    test eax, eax
+    jz .Return
+
+    push [ebx + Point.Id]
+    mov ebx, eax
+    stdcall GeometryObject.DetachPoint ; Point id is pushed above
+
+    .Return:
+    ret
+endp
+
+
 proc Point.AdjustAttachedPoint, X, Y
     locals
        pParentObject dd ?
@@ -285,7 +300,7 @@ proc Point.AdjustAttachedPoint, X, Y
 
     stdcall Main.GetObjectById, [ebx + Point.ParentObjectId]
     test eax, eax
-    jz .DetachPoint
+    jz .ClearParerntObject
 
     mov [pParentObject], eax
 
@@ -313,7 +328,11 @@ proc Point.AdjustAttachedPoint, X, Y
 
     @@:
     .DetachPoint:
+    stdcall Point.Detach
+
+    .ClearParerntObject:
     mov [ebx + Point.ParentObjectId], 0
+    xor eax, eax
 
     .Return:
     ret
