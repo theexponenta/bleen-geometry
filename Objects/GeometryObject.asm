@@ -160,6 +160,9 @@ endp
 
 
 proc GeometryObject.DependsOnObject, Id
+    cmp [Id], 0
+    je .ReturnFalse
+
     movzx eax, byte [ebx + GeometryObject.Type]
 
     cmp eax, OBJ_POLYLINE

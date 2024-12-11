@@ -21,6 +21,9 @@ endp
 proc Segment.Update
     mov eax, [ebx + Segment.Point1Id]
     call Main.FindPointById
+    test eax, eax
+    jz .Return
+
     mov edx, [eax + Point.X]
     mov ecx, [eax + Point.Y]
     mov [ebx + Segment.Point1.x], edx
@@ -28,11 +31,15 @@ proc Segment.Update
 
     mov eax, [ebx + Segment.Point2Id]
     call Main.FindPointById
+    test eax, eax
+    jz .Return
+
     mov edx, [eax + Point.X]
     mov ecx, [eax + Point.Y]
     mov [ebx + Segment.Point2.x], edx
     mov [ebx + Segment.Point2.y], ecx
 
+    .Return:
     ret
 endp
 
