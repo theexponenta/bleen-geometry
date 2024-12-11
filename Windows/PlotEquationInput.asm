@@ -30,9 +30,10 @@ proc PlotEquationInputWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lp
         invoke GetWindowTextA, [PlotEquationInputWindow.Input.hWnd], eax, esi
 
         stdcall Main.AddPlot, Plot.Type.Regular, [pEquationBuffer]
+        mov edi, eax
         invoke GetWindowTextW, [PlotEquationInputWindow.Input.hWnd], [pEquationBuffer], esi
 
-        test eax, eax
+        test edi, edi
         jz @F
 
         stdcall DrawArea.Redraw
@@ -42,6 +43,7 @@ proc PlotEquationInputWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lp
 
         @@:
         invoke HeapFree, [hProcessHeap], [pEquationBuffer]
+
         jmp .Return_0
 
     .Return_0:

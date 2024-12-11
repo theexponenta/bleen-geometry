@@ -94,7 +94,7 @@ endp
 
 
 proc ByteArray.Destroy
-    invoke HeapFree, [hProcessHeap], [ebx + ByteArray.Ptr]
+    invoke HeapFree, [hProcessHeap], 0, [ebx + ByteArray.Ptr]
 
     ret
 endp

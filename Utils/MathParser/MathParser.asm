@@ -267,11 +267,11 @@ proc MathParser.Parse uses esi edi ebx, pSource, pOutBytearray, variableLetter
             jmp .ReadLoop
 
     .ReturnSuccess:
-        mov ebx, 1
+        mov edi, 1
         jmp .PopRest
 
     .ReturnError:
-       xor ebx, ebx
+       xor edi, edi
 
     .PopRest:
         mov ebx, [pOutBytearray]
@@ -291,7 +291,7 @@ proc MathParser.Parse uses esi edi ebx, pSource, pOutBytearray, variableLetter
         xor eax, eax
         stdcall ByteArray.PushByte
 
-        mov eax, ebx
+        mov eax, edi
 
         ret
 endp
