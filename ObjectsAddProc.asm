@@ -300,3 +300,15 @@ proc Main.AddPlot uses ebx, PlotType, pEquationStr
     .Return:
     ret
 endp
+
+
+proc Main.AddMidpoint, pObject
+    stdcall Main._AddPoint, 0, 0, 0, Point.IntersectionDefaultColor, Point.DefaultSize
+    mov edx, [pObject]
+    mov edx, [edx + GeometryObject.Id]
+    mov byte [eax + Point.ConstructType], Point.ConstructType.MIDPOINT
+    mov [eax + Point.ConstructObject1Id], edx
+
+
+    ret
+endp

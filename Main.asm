@@ -931,7 +931,8 @@ section '.rsrc' resource data readable
              TOOL_PERPENDICULAR, LANG_NEUTRAL, perpendicular_icon, \
              TOOL_PERPENDICULAR_BISECTOR, LANG_NEUTRAL, perpendicular_bisector_icon, \
              TOOL_PARALLEL_LINE, LANG_NEUTRAL, parallel_line_icon, \
-             TOOL_PLOT, LANG_NEUTRAL, plot_icon
+             TOOL_PLOT, LANG_NEUTRAL, plot_icon, \
+             TOOL_MIDPOINT_OR_CENTER, LANG_NEUTRAL, midpoint_or_center_icon
 
     bitmap move_icon, 'icons/move.bmp'
     bitmap point_icon, 'icons/point.bmp'
@@ -947,4 +948,5 @@ section '.rsrc' resource data readable
     bitmap perpendicular_icon, 'icons/perpendicular_icon.bmp'
     bitmap perpendicular_bisector_icon, 'icons/perpendicular_bisector_icon.bmp'
     bitmap parallel_line_icon, 'icons/parallel_line_icon.bmp'
+    bitmap midpoint_or_center_icon, 'icons/midpoint_or_center_icon.bmp'
     bitmap plot_icon, 'icons/plot_icon.bmp'

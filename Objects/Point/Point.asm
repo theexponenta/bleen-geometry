@@ -20,6 +20,8 @@ proc Point.Create uses ebx, Id, pName, pCaption, X, Y, Color, Size, pParentObjec
     mov [ebx + Point.IntersectionId], 0
     mov [ebx + Point.ParentObjectId], 0
     mov [ebx + Point.IsHiddenByIntersection], 0
+    mov byte [ebx + Point.ConstructType], 0
+    mov [ebx + Point.ConstructObject1Id], 0
 
     mov eax, [pParentObject]
     test eax, eax
@@ -232,9 +234,9 @@ proc Point.ToString, pBuffer
 endp
 
 
-proc Point.Update
+proc Point.Update uses ebx esi
     cmp [ebx + Point.ParentObjectId], 0
-    je .Return
+    je @F
 
     stdcall Point.AdjustAttachedPoint, [ebx + Point.X], [ebx + Point.Y]
     test eax, eax
@@ -242,6 +244,34 @@ proc Point.Update
 
     mov [ebx + Point.X], edx
     mov [ebx + Point.Y], ecx
+
+    @@:
+    cmp byte [ebx + Point.ConstructType], 0
+    je .Return
+
+    stdcall Main.GetObjectById, [ebx + Point.ConstructObject1Id]
+    test eax, eax
+    jz .Return
+
+    mov esi, ebx
+    mov ebx, eax
+    stdcall Segment.Update
+
+    fld1
+    fld1
+    faddp
+
+    fld [ebx + Segment.Point1.x]
+    fadd [ebx + Segment.Point2.x]
+    fdiv st0, st1
+    fstp [esi + Point.X]
+
+    fld [ebx + Segment.Point1.y]
+    fadd [ebx + Segment.Point2.y]
+    fdiv st0, st1
+    fstp [esi + Point.Y]
+
+    fstp st0
 
     .Return:
     ret

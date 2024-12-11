@@ -7,6 +7,8 @@ struct Point GeometryObject
     ParentObjectId dd ?
     IntersectionId dd ?
     IsHiddenByIntersection db ?
+    ConstructType db ?
+    ConstructObject1Id dd ?
 ends
 
 
@@ -20,4 +22,6 @@ Point.SelectedBorderSize = 3
 Point.NameTextOffset = 20
 
 Point.EditableProperties = PROP_NAME or PROP_CAPTION or PROP_COLOR or PROP_SIZE
+
+Point.ConstructType.MIDPOINT = 1
 

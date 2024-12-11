@@ -12,10 +12,13 @@ include 'AngleBisector/AngleBisectorTool.d'
 include 'Perpendicular/PerpendicularTool.d'
 include 'PerpendicularBisector/PerpendicularBisectorTool.d'
 include 'ParallelLine/ParallelLineTool.d'
+include 'MidpointOrCenter/MidpointOrCenterTool.d'
 
 
 Tools.States.Transitions dd MoveTool.States.Transitions, PointTool.States.Transitions, SegmentTool.States.Transitions, \
                             CircleWithCenterTool.States.Transitions, LineTool.States.Transitions, EllipseTool.States.Transitions, \
                             PolylineTool.States.Transitions, PolygonTool.States.Transitions, ParabolaTool.States.Transitions, \
                             IntersectionTool.States.Transitions, AngleBisectorTool.States.Transitions, PerpendicularTool.States.Transitions, \
-                            PerpendicularBisectorTool.States.Transitions, ParallelLineTool.States.Transitions, 0
+                            PerpendicularBisectorTool.States.Transitions, ParallelLineTool.States.Transitions, \
+                            0, \
+                            MidpointOrCenterTool.States.Transitions, 0
