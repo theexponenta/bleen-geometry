@@ -188,6 +188,9 @@ proc GeometryObject.DependsOnObject, Id
     shl eax, 2
 
     mov edx, [edx + eax]
+    test edx, edx
+    jz .ReturnFalse
+
     mov ecx, [edx]
     test ecx, ecx
     jz .ReturnFalse
