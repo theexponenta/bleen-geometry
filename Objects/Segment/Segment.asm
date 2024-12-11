@@ -73,8 +73,11 @@ proc Segment.Draw uses ebx edi, hdc
 endp
 
 
-; st0 - Y-coordinate of instersection point
-; st1 - X-coordinate of instersection point
+; We suppose we know that a point lies on segment's line.
+; This procedure determines if this point lies on the segment itself
+;
+; st0 - Y-coordinate of point
+; st1 - X-coordinate of point
 proc Segment.IsPointOnSegment
     fld [ebx + Segment.Point1.x]
     fld [ebx + Segment.Point2.x]

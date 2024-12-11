@@ -292,24 +292,12 @@ endp
 
 proc Point._AdjustLineObjectPoint uses ebx, pObject, X, Y
     locals
-        SecondPrependicularPointY dd ?
         AdjustedPoint POINT ?
     endl
 
     mov eax, [pObject]
 
-    fld [eax + Line.Point2.x]
-    fsub [eax + Line.Point1.x]
-    fld [eax + Line.Point2.y]
-    fsub [eax + Line.Point1.y]
-    fdivp
-    fmul [X]
-    fadd [Y]
-    fstp [SecondPrependicularPointY]
-
-    stdcall Math.IntersectLines, [eax + Line.Point1.x], [eax + Line.Point1.y],  [eax + Line.Point2.x], [eax + Line.Point2.y], \
-                                 [X], [Y], 0f, [SecondPrependicularPointY]
-
+    stdcall Math.GetNearestPointOnLine, [X], [Y], [eax + Line.Point1.x], [eax + Line.Point1.y],  [eax + Line.Point2.x], [eax + Line.Point2.y]
 
     mov ebx, [pObject]
     cmp byte [ebx + GeometryObject.Type], OBJ_SEGMENT

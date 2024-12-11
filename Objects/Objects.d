@@ -15,29 +15,29 @@ include 'Plot/Plot.d'
 include 'GeometryObject.d'
 
 
-Objects.DrawProcedures dd Point.Draw, Segment.Draw, CircleWithCenter.Draw, Line.Draw, EllipseObj.Draw, PolylineObj.Draw, PolygonObj.Draw, \
+Objects.DrawProcedures dd Point.Draw, CircleWithCenter.Draw, Segment.Draw, Line.Draw, EllipseObj.Draw, PolylineObj.Draw, PolygonObj.Draw, \
                           Parabola.Draw, Intersection.Draw, AngleBisector.Draw, Perpendicular.Draw, PerpendicularBisector.Draw, \
                           ParallelLine.Draw, Plot.Draw
 
-Objects.UpdateProcedures dd 0, Segment.Update, 0, Line.Update, 0, 0, 0, 0, 0, AngleBisector.Update, Perpendicular.Update,  \
+Objects.UpdateProcedures dd 0, 0, Segment.Update, Line.Update, 0, 0, 0, 0, 0, AngleBisector.Update, Perpendicular.Update,  \
                             PerpendicularBisector.Update, ParallelLine.Update, 0
 
 
-Objects.IsOnPositionProcedures dd Point.IsOnPosition, Segment.IsOnPosition, CircleWithCenter.IsOnPosition, \
+Objects.IsOnPositionProcedures dd Point.IsOnPosition, CircleWithCenter.IsOnPosition, Segment.IsOnPosition, \
                                   Line.IsOnPosition, EllipseObj.IsOnPosition, PolylineObj.IsOnPosition, \
                                   PolygonObj.IsOnPosition, Parabola.IsOnPosition, Intersection.IsOnPosition, \
                                   AngleBisector.IsOnPosition, Perpendicular.IsOnPosition, PerpendicularBisector.IsOnPosition, \
                                   ParallelLine.IsOnPosition, Plot.IsOnPosition
 
-Objects.MoveProcedures dd Point.Move, Segment.Move, CircleWithCenter.Move, Line.Move, EllipseObj.Move, PolylineObj.Move, PolygonObj.Move, \
+Objects.MoveProcedures dd Point.Move,  CircleWithCenter.Move, Segment.Move, Line.Move, EllipseObj.Move, PolylineObj.Move, PolygonObj.Move, \
                           Parabola.Move, Intersection.Move, AngleBisector.Move, Perpendicular.Move, PerpendicularBisector.Move, \
                           ParallelLine.Move, Plot.Move
 
-Objects.ToStringProcedures dd Point.ToString, Segment.ToString, CircleWithCenter.ToString, Line.ToString, EllipseObj.ToString, PolylineObj.ToString, \
+Objects.ToStringProcedures dd Point.ToString, CircleWithCenter.ToString, Segment.ToString, Line.ToString, EllipseObj.ToString, PolylineObj.ToString, \
                           PolygonObj.ToString, Parabola.ToString, Intersection.ToString, AngleBisector.ToString, \
                           Perpendicular.ToString, PerpendicularBisector.ToString, ParallelLine.ToString, Plot.ToString
 
-Objects.DependencyObjectsIdsOffsets dd    Point.DependencyObjectsIdsOffsets, Segment.DependencyObjectsIdsOffsets, CircleWithCenter.DependencyObjectsIdsOffsets, \
+Objects.DependencyObjectsIdsOffsets dd    Point.DependencyObjectsIdsOffsets, CircleWithCenter.DependencyObjectsIdsOffsets, Segment.DependencyObjectsIdsOffsets, \
                                           Line.DependencyObjectsIdsOffsets, EllipseObj.DependencyObjectsIdsOffsets, \
                                           0, \  ; Polyline dependency points are not fixed, they are stored in vector, so we defined a separate procedure PolylineObj.DependsOnObject
                                           0, \ ; The same story about polygon
@@ -50,7 +50,7 @@ Objects.DependencyObjectsIdsOffsets dd    Point.DependencyObjectsIdsOffsets, Seg
                                           0
 
 
-Objects.EditableProperties dd Point.EditableProperties, Segment.EditableProperties, CircleWithCenter.EditableProperties, \
+Objects.EditableProperties dd Point.EditableProperties, CircleWithCenter.EditableProperties, Segment.EditableProperties, \
                               Line.EditableProperties, EllipseObj.EditableProperties, PolylineObj.EditableProperties, \
                               PolygonObj.EditableProperties, Parabola.EditableProperties, 0, AngleBisector.EditableProperties, \
                               Perpendicular.EditableProperties, PerpendicularBisector.EditableProperties, ParallelLine.EditableProperties, \
