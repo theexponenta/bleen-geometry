@@ -172,8 +172,8 @@ endp
 
 
 proc PolylineObj.ToString, pBuffer
-    invoke lstrcpyA, [pBuffer], PolylineObj.StrFormat
-    invoke lstrlenA, PolylineObj.StrFormat
+    invoke lstrcpyW, [pBuffer], PolylineObj.StrFormat
+    invoke lstrlenW, PolylineObj.StrFormat
 
     ret
 endp

@@ -289,7 +289,7 @@ proc Parabola.ToString, pBuffer
     stdcall Main.FindPointById
     push [eax + GeometryObject.pName]
 
-    cinvoke sprintf, [pBuffer], Parabola.StrFormat ; Format arguments are pushed above
+    cinvoke swprintf, [pBuffer], Parabola.StrFormat ; Format arguments are pushed above
     add esp, 4
 
     ret

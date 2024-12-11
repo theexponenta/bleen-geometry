@@ -265,7 +265,7 @@ proc EllipseObj.ToString, pBuffer
     stdcall Main.FindPointById
     push [eax + GeometryObject.pName]
 
-    cinvoke sprintf, [pBuffer], EllipseObj.StrFormat ; Format arguments are pushed above
+    cinvoke swprintf, [pBuffer], EllipseObj.StrFormat ; Format arguments are pushed above
     add esp, 4*3
 
     ret

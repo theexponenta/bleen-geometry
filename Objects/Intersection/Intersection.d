@@ -1,1 +1,1 @@
-Intersection.StrFormat db "Intersection", 0
+Intersection.StrFormat du "Intersection", 0

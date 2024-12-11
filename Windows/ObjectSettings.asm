@@ -191,7 +191,7 @@ proc ObjectSettingsWindow._AddEditControl, hwnd, Property, FieldOffset, pText
         ControlHwnd dd ?
     endl
 
-    invoke CreateWindowExA, 0, EDITCLASSNAME_ASCII, [pText], WS_VISIBLE or WS_CHILD or WS_BORDER, \
+    invoke CreateWindowExW, 0, EDITCLASSNAME, [pText], WS_VISIBLE or WS_CHILD or WS_BORDER, \
                            ObjectSettingsWindow.PaddingLeft, [ObjectSettingsWindow.CurrentYOffset], ObjectSettingsWindow.EditControl.Width, \
                            ObjectSettingsWindow.EditControl.Height, [hwnd], NULL, [hInstance], NULL
     mov [ControlHwnd], eax
@@ -453,7 +453,7 @@ proc ObjectSettingsWindow._Submit uses esi ebx
         jne @F
 
         lea eax, [StringBuffer + 4]
-        invoke GetWindowTextA, [esi + ObjectFieldInputControl.hWnd], eax, 65
+        invoke GetWindowTextW, [esi + ObjectFieldInputControl.hWnd], eax, 65
         mov dword [StringBuffer], eax
         lea eax, [StringBuffer + 4]
         stdcall GeometryObject.SetName, eax

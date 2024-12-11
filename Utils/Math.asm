@@ -536,6 +536,26 @@ proc Math.IntersectLines, X1, Y1, X2, Y2, X3, Y3, X4, Y4
 endp
 
 
+proc Math.GetNearestPointOnLine, X0, Y0, LineX1, LineY1, LineX2, LineY2
+    locals
+        SecondPrependicularPointY dd ?
+    endl
+
+    fld [LineX2]
+    fsub [LineX1]
+    fld [LineY2]
+    fsub [LineY1]
+    fdivp
+    fmul [X0]
+    fadd [Y0]
+    fstp [SecondPrependicularPointY]
+
+    stdcall Math.IntersectLines, [LineX1], [LineY1], [LineX2], [LineY2], [X0], [Y0], 0f, [SecondPrependicularPointY]
+
+    ret
+endp
+
+
 proc Math.IsPointInRectangle, X, Y, Left, Top, Right, Bottom
     xor eax, eax
 

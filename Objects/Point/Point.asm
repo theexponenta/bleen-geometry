@@ -130,7 +130,7 @@ proc Point.PointNumToName uses ebx
     .MakeString:
     mov ebx, ecx
     shl ebx, 1
-    add ebx, 4 ; for length before string
+    add ebx, 7 ; 4 for length before string, 2 for zero character
     push edx ecx
     invoke HeapAlloc, [hProcessHeap], HEAP_ZERO_MEMORY, ebx
     pop ecx edx
@@ -227,7 +227,7 @@ endp
 
 
 proc Point.ToString, pBuffer
-    cinvoke sprintf, [pBuffer], Point.StrFormat, [ebx + Point.pName]
+    cinvoke swprintf, [pBuffer], Point.StrFormat, [ebx + Point.pName]
     ret
 endp
 

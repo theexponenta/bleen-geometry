@@ -1,1 +1,1 @@
-PolylineObj.StrFormat db "Polyline", 0
+PolylineObj.StrFormat du "Polyline", 0

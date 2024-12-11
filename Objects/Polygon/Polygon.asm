@@ -250,8 +250,8 @@ endp
 
 
 proc PolygonObj.ToString, pBuffer
-    invoke lstrcpyA, [pBuffer], PolygonObj.StrFormat
-    invoke lstrlenA, PolygonObj.StrFormat
+    invoke lstrcpyW, [pBuffer], PolygonObj.StrFormat
+    invoke lstrlenW, PolygonObj.StrFormat
 
     ret
 endp

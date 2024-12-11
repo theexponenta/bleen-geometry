@@ -183,7 +183,7 @@ proc CircleWithCenter.ToString, pBuffer
     stdcall Main.FindPointById
     push [eax + GeometryObject.pName]
 
-    cinvoke sprintf, [pBuffer], CircleWithCenter.StrFormat ; Format arguments are pushed above
+    cinvoke swprintf, [pBuffer], CircleWithCenter.StrFormat ; Format arguments are pushed above
     add esp, 4*2
 
     ret

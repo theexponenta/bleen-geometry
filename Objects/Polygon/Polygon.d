@@ -1,3 +1,3 @@
 
-PolygonObj.StrFormat db "Polygon", 0
+PolygonObj.StrFormat du "Polygon", 0
 

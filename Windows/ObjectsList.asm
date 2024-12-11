@@ -258,7 +258,7 @@ endp
 
 proc ObjectsListWindow._DrawListItem uses ebx, hDC, pObject
     locals
-        StrBuffer db 64 dup(?)
+        StrBuffer db 256 dup(?)
         CurrentHeightMinusScroll dd ?
     endl
 
@@ -292,7 +292,7 @@ proc ObjectsListWindow._DrawListItem uses ebx, hDC, pObject
     lea edx, [StrBuffer]
     mov ecx, [CurrentHeightMinusScroll]
     add ecx, ObjectsListWindow.ListItemPadding
-    invoke TextOutA, [hDC], ObjectsListWindow.VisibilityCircleSeparatorXOffset + ObjectsListWindow.TextMarginLeft, ecx, edx, eax
+    invoke TextOutW, [hDC], ObjectsListWindow.VisibilityCircleSeparatorXOffset + ObjectsListWindow.TextMarginLeft, ecx, edx, eax
 
     invoke SelectObject, [hDC], [ObjectsListWindow.hSeparatorPen]
 

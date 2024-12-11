@@ -1,3 +1,3 @@
 
 PerpendicularBisector.DependencyObjectsIdsOffsets dd 2, PerpendicularBisector.Point1Id, PerpendicularBisector.Point2Id
-PerpendicularBisector.StrFormat db "Perpendicular bisector", 0
+PerpendicularBisector.StrFormat du "Perpendicular bisector", 0

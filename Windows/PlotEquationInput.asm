@@ -22,7 +22,7 @@ proc PlotEquationInputWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lp
         cmp [wparam], PlotEquationInputWindow.OkButton.hMenu
         jne .Return_0
 
-        invoke GetWindowTextLengthA, [PlotEquationInputWindow.Input.hWnd]
+        invoke GetWindowTextLengthW, [PlotEquationInputWindow.Input.hWnd]
         add eax, 1
         mov esi, eax
         invoke HeapAlloc, [hProcessHeap], HEAP_ZERO_MEMORY, eax
@@ -30,6 +30,7 @@ proc PlotEquationInputWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lp
         invoke GetWindowTextA, [PlotEquationInputWindow.Input.hWnd], eax, esi
 
         stdcall Main.AddPlot, Plot.Type.Regular, [pEquationBuffer]
+        invoke GetWindowTextW, [PlotEquationInputWindow.Input.hWnd], [pEquationBuffer], esi
 
         test eax, eax
         jz @F

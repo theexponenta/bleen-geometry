@@ -158,7 +158,7 @@ proc Perpendicular.ToString, pBuffer
     stdcall Main.FindPointById
     push [eax + GeometryObject.pName]
 
-    cinvoke sprintf, [pBuffer], Perpendicular.StrFormat ; Format arguments are pushed above
+    cinvoke swprintf, [pBuffer], Perpendicular.StrFormat ; Format arguments are pushed above
     add esp, 4
 
     ret

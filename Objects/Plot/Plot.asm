@@ -219,7 +219,7 @@ endp
 
 
 proc Plot.ToString, pBuffer
-    cinvoke sprintf, [pBuffer], Plot.StrFormat, [ebx + Plot.pEquationStr]
+    cinvoke swprintf, [pBuffer], Plot.StrFormat, [ebx + Plot.pEquationStr]
     ret
 endp
 

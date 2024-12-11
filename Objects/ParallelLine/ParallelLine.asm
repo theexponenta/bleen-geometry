@@ -142,7 +142,7 @@ proc ParallelLine.ToString, pBuffer
     stdcall Main.FindPointById
     push [eax + GeometryObject.pName]
 
-    cinvoke sprintf, [pBuffer], ParallelLine.StrFormat ; Format arguments are pushed above
+    cinvoke swprintf, [pBuffer], ParallelLine.StrFormat ; Format arguments are pushed above
     add esp, 4
 
     ret

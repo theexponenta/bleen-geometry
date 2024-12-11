@@ -176,7 +176,7 @@ proc AngleBisector.ToString, pBuffer
     stdcall Main.FindPointById
     push [eax + AngleBisector.pName]
 
-    cinvoke sprintf, [pBuffer], AngleBisector.StrFormat ; Format arguments are pushed above
+    cinvoke swprintf, [pBuffer], AngleBisector.StrFormat ; Format arguments are pushed above
 
     ret
 endp

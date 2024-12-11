@@ -905,7 +905,8 @@ section '.idata' import data readable writeable
   include 'api\gdi32.inc'
 
   import msvcrt, \
-         sprintf, 'sprintf'
+         sprintf, 'sprintf', \
+         swprintf, 'swprintf'
 
   import comdlg32, \
          ChooseColorW, 'ChooseColorW'
