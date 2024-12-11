@@ -42,7 +42,7 @@ proc PlotEquationInputWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lp
         jmp .Return_0
 
         @@:
-        invoke HeapFree, [hProcessHeap], [pEquationBuffer]
+        invoke HeapFree, [hProcessHeap], 0, [pEquationBuffer]
 
         jmp .Return_0
 
