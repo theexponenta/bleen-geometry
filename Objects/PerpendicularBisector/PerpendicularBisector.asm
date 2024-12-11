@@ -168,8 +168,8 @@ endp
 
 
 proc PerpendicularBisector.ToString, pBuffer
-    invoke lstrcpyA, [pBuffer], PerpendicularBisector.StrFormat
-    invoke lstrlenA, PerpendicularBisector.StrFormat
+    invoke lstrcpyW, [pBuffer], PerpendicularBisector.StrFormat
+    invoke lstrlenW, PerpendicularBisector.StrFormat
 
     ret
 endp

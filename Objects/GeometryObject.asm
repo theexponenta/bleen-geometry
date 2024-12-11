@@ -236,7 +236,7 @@ proc GeometryObject.SetName uses esi edi, pNewName
     sub esi, 4
     mov edi, [esi]
     shl edi, 1 ; Unicode
-    add edi, 4 ; 4 bytes for length of string
+    add edi, 6 ; 4 bytes for length of string, 2 for null-character
 
     invoke HeapAlloc, [hProcessHeap], HEAP_ZERO_MEMORY, edi
     mov edx, eax
