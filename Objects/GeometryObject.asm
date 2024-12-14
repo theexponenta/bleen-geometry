@@ -12,8 +12,9 @@ proc GeometryObject.Create uses ebx, Id, Type, pName, pCaption
     mov eax, [pCaption]
     mov [ebx + GeometryObject.pCaption], eax
 
-    mov [ebx + GeometryObject.IsSelected], 0
-    mov [ebx + GeometryObject.IsHidden], 0
+    mov byte [ebx + GeometryObject.IsSelected], 0
+    mov byte [ebx + GeometryObject.IsHidden], 0
+    mov byte [ebx + GeometryObject.ToBeDeleted], 0
 
     add ebx, GeometryObject.AttachedPointsIds
     stdcall Vector.Create, 4, 0, GeometryObject.AttachedPointsIds.DefaultCapacity

@@ -643,16 +643,22 @@ proc Main._MarkDependtendPointsToDelete uses ebx, Id
 
     mov ebx, [Points.Ptr]
     .MarkPointsLoop:
+        cmp [ebx + GeometryObject.ToBeDeleted], 0
+        jne .NextIteration
+
         push ecx
 
         stdcall GeometryObject.DependsOnObject, [Id]
         test eax, eax
         jz @F
 
-        mov [ebx + Point.Id], 0
+        mov byte [ebx + GeometryObject.ToBeDeleted], 1
+        stdcall Main.MarkDependentObjectsToDelete, [ebx + GeometryObject.Id]
 
         @@:
         pop ecx
+
+        .NextIteration:
         add ebx, sizeof.Point
         loop .MarkPointsLoop
 
@@ -661,7 +667,7 @@ proc Main._MarkDependtendPointsToDelete uses ebx, Id
 endp
 
 
-proc Main._MarkDependentObjectsToDelete uses ebx, Id
+proc Main.MarkDependentObjectsToDelete uses ebx, Id
     stdcall Main._MarkDependtendPointsToDelete, [Id]
 
     mov ecx, [Objects.Sizes.Length]
@@ -681,11 +687,11 @@ proc Main._MarkDependentObjectsToDelete uses ebx, Id
         test eax, eax
         jz @F
 
-        stdcall Main._MarkDependentObjectsToDelete, [ebx + GeometryObject.Id]
+        stdcall Main.MarkDependentObjectsToDelete, [ebx + GeometryObject.Id]
 
         @@:
         stdcall GeometryObject.Destroy
-        mov [ebx + GeometryObject.Id], 0
+        mov byte [ebx + GeometryObject.ToBeDeleted], 1
 
         .NextIteration:
         pop ecx edx
@@ -745,7 +751,7 @@ proc Main.DeleteObjectById uses ebx esi edi, Id
     .MarkDependentObjects:
     cmp [Objects.Sizes.Length], 0
     je .DeleteRequestedObject
-    stdcall Main._MarkDependentObjectsToDelete, [Id]
+    stdcall Main.MarkDependentObjectsToDelete, [Id]
 
     .DeleteRequestedObject:
     cmp [IsPoint], 0
@@ -768,18 +774,20 @@ proc Main.DeleteObjectById uses ebx esi edi, Id
     mov ebx, Objects
     xor eax, eax
     .DeleteMarkedObjectsLoop:
-        cmp [edi + GeometryObject.Id], 0
-        jne @F
+        cmp byte [edi + GeometryObject.ToBeDeleted], 0
+        je @F
 
         push eax ecx edx
         stdcall Main._DeleteObjectByIndex, eax
         pop edx ecx eax
-        dec eax
+        jmp .ObjectDeleted
 
         @@:
         add edi, [edx]
         add edx, 4
         inc eax
+
+        .ObjectDeleted:
         loop .DeleteMarkedObjectsLoop
 
     .DeleteMarkedPoints:
@@ -791,17 +799,18 @@ proc Main.DeleteObjectById uses ebx esi edi, Id
     mov ebx, Points
     xor esi, esi
     .DeleteMarkedPointsLoop:
-        cmp [edi + Point.Id], 0
-        jne @F
+        cmp byte [edi + GeometryObject.ToBeDeleted], 0
+        je @F
 
         push ecx
         stdcall Vector.DeleteByIndex, esi
         pop ecx
-        sub esi, 1
+        jmp .PointDeleted
 
         @@:
         add edi, sizeof.Point
         add esi, 1
+        .PointDeleted:
         loop .DeleteMarkedPointsLoop
 
     mov byte [ObjectsListWindow.NeedsRedraw], 1
@@ -860,8 +869,8 @@ section '.data' data readable writeable
   CurrentToolId dd 1
   CurrentStateId dd 1
 
-  CurrentMouseScreenPoint Point 0, OBJ_POINT, 0, 0, 0, 0, 0f, 0f
-  CurrentMousePlanePoint Point 0, OBJ_POINT, 0, 0, 0, 0, 0f, 0f
+  CurrentMouseScreenPoint Point 0, OBJ_POINT, 0, 0, 0, 0, 0, 0, 0f, 0f
+  CurrentMousePlanePoint Point 0, OBJ_POINT, 0, 0, 0, 0, 0, 0, 0f, 0f
 
   Translate POINT 0f, 0f
   Scale dq 1.0

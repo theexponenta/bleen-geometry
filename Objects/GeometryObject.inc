@@ -22,6 +22,7 @@ struct GeometryObject
     AttachedPointsIds Vector ?
     pName dd ? ; Delphi-string
     pCaption dd ? ; Delphi-string
+    ToBeDeleted db ?
 ends
 
 

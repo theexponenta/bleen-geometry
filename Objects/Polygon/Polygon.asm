@@ -226,7 +226,7 @@ proc PolygonObj.Destroy uses ebx esi
     test ecx, ecx
     jz .Return
 
-    ; Id = 0 is a mark for procedure Main.DeleteObjectById to delete dependent objects
+    ; ToBeDeleted = 1 is a mark for procedure Main.DeleteObjectById to delete dependent objects
     .MarkSegmentsToDelete:
         push ecx
         stdcall Main.GetObjectById, [esi]
@@ -235,7 +235,7 @@ proc PolygonObj.Destroy uses ebx esi
         test eax, eax
         jz .NextIteration
 
-        mov [eax + Segment.Id], 0
+        mov byte [eax + Segment.ToBeDeleted], 1
 
         .NextIteration:
         add esi, 4
