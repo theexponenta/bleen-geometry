@@ -3,13 +3,20 @@ proc HeterogenousVector.Create uses ebx, Capacity
     mov eax, [Capacity]
     mov [ebx + HeterogenousVector.Capacity], eax
 
-    invoke HeapAlloc, [hProcessHeap], HEAP_ZERO_MEMORY, eax
-    mov [ebx + HeterogenousVector.Ptr], eax
+    stdcall HeterogenousVector.Allocate, [Capacity]
 
     mov [ebx + HeterogenousVector.TotalSize], 0
 
     add ebx, HeterogenousVector.Sizes
     stdcall Vector.Create, HeterogenousVector.BytesForElementSize, 0, HeterogenousVector.IntitialElementsCapacity
+
+    ret
+endp
+
+
+proc HeterogenousVector.Allocate, Capacity
+    invoke HeapAlloc, [hProcessHeap], HEAP_ZERO_MEMORY, [Capacity]
+    mov [ebx + HeterogenousVector.Ptr], eax
 
     ret
 endp
@@ -152,3 +159,12 @@ proc HeterogenousVector.PtrByIndex, Index
     ret
 endp
 
+
+proc HeterogenousVector.Destroy uses ebx
+    invoke HeapFree, [hProcessHeap], 0, [ebx + HeterogenousVector.Ptr]
+
+    add ebx, HeterogenousVector.Sizes
+    stdcall Vector.Destroy
+
+    ret
+endp

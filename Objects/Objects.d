@@ -15,6 +15,11 @@ include 'Plot/Plot.d'
 include 'GeometryObject.d'
 
 
+Objects.StructSizes dd sizeof.Point, sizeof.CircleWithCenter, sizeof.Segment, sizeof.Line, sizeof.EllipseObj, sizeof.PolylineObj, sizeof.PolygonObj, \
+                      sizeof.Parabola, sizeof.Intersection, sizeof.AngleBisector, sizeof.Perpendicular, sizeof.PerpendicularBisector, \
+                      sizeof.ParallelLine, sizeof.Plot
+
+
 Objects.DrawProcedures dd Point.Draw, CircleWithCenter.Draw, Segment.Draw, Line.Draw, EllipseObj.Draw, PolylineObj.Draw, PolygonObj.Draw, \
                           Parabola.Draw, Intersection.Draw, AngleBisector.Draw, Perpendicular.Draw, PerpendicularBisector.Draw, \
                           ParallelLine.Draw, Plot.Draw

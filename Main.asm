@@ -141,8 +141,10 @@ proc Main.CreateWindows
         ClientHeight dd ?
     endl
 
+    invoke LoadMenuA, [hInstance], IDR_MENU
+    mov [MainWindow.hMainMenu], eax
     invoke CreateWindowEx, 0, MainWindow.wcexClass.ClassName, MainWindow.Title, WS_OVERLAPPEDWINDOW, \
-                           0, 0, eax, edx, NULL, NULL, [hInstance], NULL
+                           0, 0, eax, edx, NULL, eax, [hInstance], NULL
 
     mov [MainWindow.hwnd], eax
     invoke ShowWindow, eax, SW_MAXIMIZE
@@ -820,6 +822,67 @@ proc Main.DeleteObjectById uses ebx esi edi, Id
 endp
 
 
+proc Main.DestroyAll uses ebx esi
+    mov ebx, [Points.Ptr]
+    mov ecx, [Points.Length]
+    test ecx, ecx
+    jz @F
+
+    .PointLoop:
+        push ecx
+        stdcall GeometryObject.Destroy
+        pop ecx
+
+        add ebx, sizeof.Point
+        loop .PointLoop
+
+    @@:
+    mov ebx, Points
+    stdcall Vector.Destroy
+
+    mov ecx, [Objects.Sizes.Length]
+    test ecx, ecx
+    jz @F
+
+    mov ebx, [Objects.Ptr]
+    mov esi, [Objects.Sizes.Ptr]
+    .ObjectsLoop:
+        push ecx
+        stdcall GeometryObject.Destroy
+        pop ecx
+
+        add ebx, [esi]
+        add esi, 4
+        loop .ObjectsLoop
+
+    @@:
+    mov ebx, Objects
+    stdcall HeterogenousVector.Destroy
+
+    mov ebx, SelectedObjectsIds
+    stdcall Vector.Destroy
+    mov ebx, SelectedObjectsPtrs
+    stdcall Vector.Destroy
+
+    ret
+endp
+
+
+proc Main.SetOpenedFile uses esi edi, pFilename
+    cld
+    mov ecx, MAX_FILENAME_LENGTH / 4
+    mov esi, [pFilename]
+    mov edi, OpenFileName
+    rep movsd
+
+    mov [FileOpened], 1
+
+    invoke EnableMenuItem, [MainWindow.hMainMenu], IDM_SAVE, MF_ENABLED
+
+    ret
+endp
+
+
 include 'Utils/Draw.asm'
 include 'Utils/Math.asm'
 include 'Utils/Strings.asm'
@@ -835,6 +898,8 @@ include 'Windows/ObjectsList.asm'
 include 'Windows/PlotEquationInput.asm'
 include 'Objects/Objects.asm'
 include 'Tools/Tools.asm'
+include 'Utils/FileIO/Writer.asm'
+include 'Utils/FileIO/Reader.asm'
 
 
 section '.data' data readable writeable
@@ -873,7 +938,7 @@ section '.data' data readable writeable
   CurrentMousePlanePoint Point 0, OBJ_POINT, 0, 0, 0, 0, 0, 0, 0f, 0f
 
   Translate POINT 0f, 0f
-  Scale dq 1.0
+  Scale dd 1.0
   ScaleStepCoefficient dq 1.1f
 
   InitialXWidth dd 30f
@@ -888,6 +953,10 @@ section '.data' data readable writeable
   AxesAndGridNeedRedraw dd 1
 
   MaxInt dd 2147483647
+
+  MAX_FILENAME_LENGTH = 256
+  FileOpened db 0
+  OpenFileName du MAX_FILENAME_LENGTH dup(?)
 
   include 'Windows/Main.d'
   include 'Windows/DrawArea.d'
@@ -918,12 +987,15 @@ section '.idata' import data readable writeable
          swprintf, 'swprintf'
 
   import comdlg32, \
-         ChooseColorW, 'ChooseColorW'
+         ChooseColorW, 'ChooseColorW', \
+         GetSaveFileNameW, 'GetSaveFileNameW', \
+         GetOpenFileNameW, 'GetOpenFileNameW'
 
 
 section '.rsrc' resource data readable
 
-    directory RT_BITMAP, toolbar_images
+    directory RT_BITMAP, toolbar_images, \
+              RT_MENU, menus
 
     resource toolbar_images, \
              TOOL_MOVE, LANG_NEUTRAL, move_icon, \
@@ -959,3 +1031,22 @@ section '.rsrc' resource data readable
     bitmap parallel_line_icon, 'icons/parallel_line_icon.bmp'
     bitmap midpoint_or_center_icon, 'icons/midpoint_or_center_icon.bmp'
     bitmap plot_icon, 'icons/plot_icon.bmp'
+
+    IDR_MENU = 3
+
+    resource menus,\
+             IDR_MENU, LANG_ENGLISH+SUBLANG_DEFAULT, main_menu
+
+    MENU_BIT = 2 shl 7
+    IDM_OPEN = 1 or MENU_BIT
+    IDM_SAVE = 2 or MENU_BIT
+    IDM_SAVE_AS = 3 or MENU_BIT
+    IDM_EXIT = 4 or MENU_BIT
+
+    menu main_menu
+        menuitem '&File', 0, MFR_POPUP + MFR_END
+                 menuitem '&Open', IDM_OPEN
+                 menuitem <'&Save', 9, 'Ctrl+S'>, IDM_SAVE, , MFS_GRAYED
+                 menuitem '&Save as', IDM_SAVE_AS
+                 menuitem 'E&xit', IDM_EXIT, MFR_END
+

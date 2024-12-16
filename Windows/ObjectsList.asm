@@ -379,7 +379,7 @@ proc ObjectsListWindow._Paint uses esi, hDC
 endp
 
 
-proc ObjectsListWindow.Redraw, hDC
+proc ObjectsListWindow.Redraw
     mov byte [ObjectsListWindow.NeedsRedraw], 0
     invoke InvalidateRect, [ObjectsListWindow.hWnd], NULL, FALSE
     ret

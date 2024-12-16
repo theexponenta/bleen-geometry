@@ -35,6 +35,18 @@ proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
 
     .Wmcommand:
         movzx eax, word [wparam]
+
+        test eax, MENU_BIT
+        jz .NotAMenu
+
+        xor eax, MENU_BIT
+        sub eax, 1
+        shl eax, 2
+        add eax, MainWindow.MenuCommandProcedures
+        call dword [eax]
+        jmp .Return_0
+
+        .NotAMenu:
         cmp eax, TOOL_PLOT
         jne @F
 
@@ -48,12 +60,33 @@ proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
         jmp .Return_0
 
     .Wmkeydown:
-        cmp [wparam], VK_CONTROL
-        jne @F
+        invoke GetKeyState, VK_CONTROL
+        test eax, 0x8000
+        jz .PostToDrawArea
 
         mov [CtrlKeyPressed], 1
+        mov eax, [wparam]
 
-        @@:
+        cmp eax, 'S'
+        jne .CheckOpen
+
+        cmp [FileOpened], 0
+        je .SaveAs
+
+        stdcall MainWindow.Save
+        jmp .PostToDrawArea
+
+        .SaveAs:
+        stdcall MainWindow.SaveAs
+        jmp .PostToDrawArea
+
+        .CheckOpen:
+        cmp eax, 'O'
+        jne .PostToDrawArea
+
+        stdcall MainWindow.OpenFile
+
+        .PostToDrawArea:
         invoke PostMessage, [DrawArea.hwnd], [wmsg], [wparam], [lparam]
         jmp .Return_0
 
@@ -181,3 +214,95 @@ proc MainWindow.CreateToolbar uses esi edi ebx, hwnd
      ret
 endp
 
+
+proc MainWindow._FillOPENFILENAMEStructure, pOfn, pFilename
+    mov eax, [pOfn]
+    invoke RtlZeroMemory, eax, sizeof.OPENFILENAME
+
+    mov edx, [pOfn]
+    mov [edx + OPENFILENAME.lStructSize], sizeof.OPENFILENAME
+    mov eax, [MainWindow.hwnd]
+    mov [edx + OPENFILENAME.hwndOwner], eax
+    mov eax, [pFilename]
+    mov [edx + OPENFILENAME.lpstrFile], eax
+    mov [edx + OPENFILENAME.nMaxFile], MAX_FILENAME_LENGTH
+
+    ret
+endp
+
+
+proc MainWindow.SaveAs
+    locals
+        Ofn OPENFILENAME ?
+        Filename du MAX_FILENAME_LENGTH dup(?)
+    endl
+
+    lea eax, [Ofn]
+    lea edx, [Filename]
+    stdcall MainWindow._FillOPENFILENAMEStructure, eax, edx
+
+    mov word [Filename], 0
+
+    lea eax, [Ofn]
+    invoke GetSaveFileNameW, eax
+    test eax, eax
+    jz .Return
+
+    lea eax, [Filename]
+    stdcall FileWriter.Save, eax, Points, Objects, [NextPointNum], [NextObjectId], [Translate.x], [Translate.y], [Scale]
+
+    lea eax, [Filename]
+    stdcall Main.SetOpenedFile, eax
+
+    .Return:
+    ret
+endp
+
+
+proc MainWindow.Save
+    cmp [FileOpened], 0
+    je .Return
+
+    stdcall FileWriter.Save, OpenFileName, Points, Objects, [NextPointNum], [NextObjectId], [Translate.x], [Translate.y], [Scale]
+
+    .Return:
+    ret
+endp
+
+
+proc MainWindow.OpenFile
+    locals
+        Ofn OPENFILENAME ?
+        Filename du MAX_FILENAME_LENGTH dup(?)
+    endl
+
+    lea eax, [Ofn]
+    lea edx, [Filename]
+    stdcall MainWindow._FillOPENFILENAMEStructure, eax, edx
+
+    mov word [Filename], 0
+
+    lea eax, [Ofn]
+    invoke GetOpenFileNameW, eax
+    test eax, eax
+    jz .Return
+
+    stdcall Main.DestroyAll
+
+    lea eax, [Filename]
+    stdcall FileReader.Read, eax, Points, Objects, NextPointNum, NextObjectId, Translate.x, Translate.y, Scale
+
+    lea eax, [Filename]
+    stdcall Main.SetOpenedFile, eax
+
+    stdcall DrawArea.Redraw
+    stdcall ObjectsListWindow.Redraw
+
+    .Return:
+    ret
+endp
+
+proc MainWindow.Exit
+    invoke DestroyWindow, [MainWindow.hwnd]
+    ret
+endp

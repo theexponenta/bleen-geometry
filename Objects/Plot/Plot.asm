@@ -15,7 +15,7 @@ proc Plot.Create uses ebx, Id, pName, pCaption, PlotType, pEquationStr, Width, C
     mov [ebx + Plot.pEquationStr], eax
 
     add ebx, Plot.RPN
-    stdcall ByteArray.Create, 64
+    stdcall ByteArray.Create, 0, 64
 
     ret
 endp

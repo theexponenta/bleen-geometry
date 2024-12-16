@@ -32,3 +32,6 @@ MainWindow.Toolbar.ButtonsCount = ($ - MainWindow.Toolbar.Buttons) / sizeof.TBBU
 MainWindow.SplitterBarWidth = 3
 MainWindow.hSplitterCursor dd ?
 MainWindow.IsResizing db 0
+
+MainWindow.hMainMenu dd ?
+MainWindow.MenuCommandProcedures dd MainWindow.OpenFile, MainWindow.Save, MainWindow.SaveAs, MainWindow.Exit

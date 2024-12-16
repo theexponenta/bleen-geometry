@@ -19,10 +19,10 @@ struct GeometryObject
     Type db ?
     IsSelected db ?
     IsHidden db ?
-    AttachedPointsIds Vector ?
+    ToBeDeleted db ?
     pName dd ? ; Delphi-string
     pCaption dd ? ; Delphi-string
-    ToBeDeleted db ?
+    AttachedPointsIds Vector ?
 ends
 
 

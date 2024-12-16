@@ -1,8 +1,9 @@
 
-proc ByteArray.Create, Capacity
+proc ByteArray.Create Size, Capacity
+    mov eax, [Size]
+    mov [ebx + ByteArray.Size], eax
     mov eax, [Capacity]
     mov [ebx + ByteArray.Capacity], eax
-    mov [ebx + ByteArray.Size], 0
 
     invoke HeapAlloc, [hProcessHeap], HEAP_ZERO_MEMORY, eax
     mov [ebx + ByteArray.Ptr], eax

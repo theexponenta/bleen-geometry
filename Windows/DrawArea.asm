@@ -62,7 +62,9 @@ proc DrawArea.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
 
     .Wmpaint:
         invoke BeginPaint, [DrawArea.hwnd], DrawArea.PaintStruct
-        invoke BitBlt, eax, 0, 0, [DrawArea.Width], [DrawArea.Height], [DrawArea.MainBufferDC], 0, 0, SRCCOPY
+        mov edx, [DrawArea.Width]
+        sub edx, [ObjectsListWindow.Width]
+        invoke BitBlt, eax, 0, 0, edx, [DrawArea.Height], [DrawArea.MainBufferDC], 0, 0, SRCCOPY
         invoke EndPaint, [DrawArea.hwnd], DrawArea.PaintStruct
 
         jmp .Return_0
