@@ -5,6 +5,8 @@ PlotEquationInputWindow.hWnd dd ?
 PlotEquationInputWindow.Input.hWnd dd ?
 PlotEquationInputWindow.Buttons.OK.Text du "OK", 0
 PlotEquationInputWindow.Title du "Enter plot equation", 0
+PlotEquationInputWindow.Error du "Error", 0
+PlotEquationInputWindow.ErrorMessage du "Invalid expression", 0
 
 PlotEquationInputWindow.pPlotObj dd ?
 

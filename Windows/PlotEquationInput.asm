@@ -1,15 +1,13 @@
 
 proc PlotEquationInputWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lparam
-    locals
-        pEquationBuffer dd ?
-    endl
-
     mov eax, [wmsg]
 
     cmp eax, WM_CREATE
     je .Wmcreate
     cmp eax, WM_COMMAND
     je .Wmcommand
+    cmp eax, WM_KEYDOWN
+    je .Wmkeydown
 
     invoke DefWindowProc, [hWnd], [wmsg], [wparam], [lparam]
     jmp .Return
@@ -18,31 +16,19 @@ proc PlotEquationInputWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lp
         stdcall PlotEquationInputWindow.AddControls, [hWnd]
         jmp .Return_0
 
+    .Wmkeydown:
+        cmp [wparam], VK_RETURN
+        jne .Return_0
+
+        stdcall PlotEquationInputWindow.Submit
+
+        jmp .Return_0
+
     .Wmcommand:
         cmp [wparam], PlotEquationInputWindow.OkButton.hMenu
         jne .Return_0
 
-        invoke GetWindowTextLengthW, [PlotEquationInputWindow.Input.hWnd]
-        add eax, 1
-        mov esi, eax
-        invoke HeapAlloc, [hProcessHeap], HEAP_ZERO_MEMORY, eax
-        mov [pEquationBuffer], eax
-        invoke GetWindowTextA, [PlotEquationInputWindow.Input.hWnd], eax, esi
-
-        stdcall Main.AddPlot, Plot.Type.Regular, [pEquationBuffer]
-        mov edi, eax
-        invoke GetWindowTextW, [PlotEquationInputWindow.Input.hWnd], [pEquationBuffer], esi
-
-        test edi, edi
-        jz @F
-
-        stdcall DrawArea.Redraw
-        stdcall ObjectsListWindow.Redraw
-        invoke DestroyWindow, [hWnd]
-        jmp .Return_0
-
-        @@:
-        invoke HeapFree, [hProcessHeap], 0, [pEquationBuffer]
+        stdcall PlotEquationInputWindow.Submit
 
         jmp .Return_0
 
@@ -50,6 +36,22 @@ proc PlotEquationInputWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lp
     xor eax, eax
 
     .Return:
+    ret
+endp
+
+
+proc PlotEquationInputWindow.ForwardWmKeydownSubclassProc hWnd, wmsg, wparam, lparam, uIdSubclass, dwRefData
+    mov eax, [wmsg]
+
+    cmp eax, WM_KEYDOWN
+    jne @F
+
+    invoke GetParent, [hWnd]
+    invoke SendMessage, eax, [wmsg], [wparam], [lparam]
+
+    @@:
+    invoke DefSubclassProc, [hWnd], [wmsg], [wparam], [lparam]
+
     ret
 endp
 
@@ -62,6 +64,8 @@ proc PlotEquationInputWindow.AddControls, hWndParent
                            PlotEquationInputWindow.InputHeight, [hWndParent], NULL, [hInstance], NULL
 
     mov [PlotEquationInputWindow.Input.hWnd], eax
+    invoke SetWindowSubclass, eax, PlotEquationInputWindow.ForwardWmKeydownSubclassProc, 1, eax
+    invoke SetFocus, [PlotEquationInputWindow.Input.hWnd]
 
     invoke CreateWindowEx, 0, BUTTONCLASSNAME, PlotEquationInputWindow.Buttons.OK.Text, WS_VISIBLE or WS_CHILD, \
                            PlotEquationInputWindow.Width - PlotEquationInputWindow.Padding - PlotEquationInputWindow.OkButtonWidth, \
@@ -69,6 +73,42 @@ proc PlotEquationInputWindow.AddControls, hWndParent
                            PlotEquationInputWindow.OkButtonWidth, PlotEquationInputWindow.OkButtonHeight, \
                            [hWndParent], PlotEquationInputWindow.OkButton.hMenu, [hInstance], NULL
 
+    ret
+endp
+
+
+proc PlotEquationInputWindow.Submit
+    locals
+        pEquationBuffer dd ?
+    endl
+
+    invoke GetWindowTextLengthW, [PlotEquationInputWindow.Input.hWnd]
+    add eax, 1
+    mov esi, eax
+    invoke HeapAlloc, [hProcessHeap], HEAP_ZERO_MEMORY, eax
+    mov [pEquationBuffer], eax
+    invoke GetWindowTextA, [PlotEquationInputWindow.Input.hWnd], eax, esi
+
+    stdcall Main.AddPlot, Plot.Type.Regular, [pEquationBuffer]
+    mov edi, eax
+    invoke GetWindowTextW, [PlotEquationInputWindow.Input.hWnd], [pEquationBuffer], esi
+
+    test edi, edi
+    jz @F
+
+    stdcall DrawArea.Redraw
+    stdcall ObjectsListWindow.Redraw
+    invoke DestroyWindow, [PlotEquationInputWindow.hWnd]
+    jmp .Return
+
+    @@:
+    invoke HeapFree, [hProcessHeap], 0, [pEquationBuffer]
+    invoke MessageBox, [PlotEquationInputWindow.hWnd], PlotEquationInputWindow.ErrorMessage, PlotEquationInputWindow.Error, \
+                       MB_OK or MB_ICONERROR
+
+    invoke SetFocus, [PlotEquationInputWindow.Input.hWnd]
+
+    .Return:
     ret
 endp
 

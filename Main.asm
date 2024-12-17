@@ -972,6 +972,7 @@ section '.idata' import data readable writeable
   library kernel32, 'KERNEL32.DLL',\
           user32, 'USER32.DLL',\
           comctl32, 'COMCTL32.DLL', \
+          comctl32_, 'COMCTL32.DLL', \
           gdi32, 'GDI32.DLL', \
           gdiplus, 'GDIPLUS.dll', \
           msvcrt, 'msvcrt.dll', \
@@ -990,6 +991,10 @@ section '.idata' import data readable writeable
          ChooseColorW, 'ChooseColorW', \
          GetSaveFileNameW, 'GetSaveFileNameW', \
          GetOpenFileNameW, 'GetOpenFileNameW'
+
+  import comctl32_, \
+         DefSubclassProc, 'DefSubclassProc', \
+         SetWindowSubclass, 'SetWindowSubclass'
 
 
 section '.rsrc' resource data readable
