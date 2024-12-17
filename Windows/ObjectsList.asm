@@ -125,6 +125,9 @@ proc ObjectsListWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lparam
 
         movzx eax, word [lparam + 2]
         stdcall ObjectsListWindow._GetIndexByYPosition, eax
+        cmp eax, -1
+        je .Return_0
+
         stdcall ObjectsListWindow._GetObjectByIndex, eax
         stdcall ObjectSettingsWindow.EditObject, eax
 
@@ -223,6 +226,15 @@ proc ObjectsListWindow._GetIndexByYPosition, YPos
     mov ecx, ObjectsListWindow.ListItemHeight
     div ecx
 
+    mov edx, [Points.Length]
+    add edx, [Objects.Sizes.Length]
+    sub edx, 1
+    cmp edx, eax
+    jge .Return
+
+    mov eax, -1
+
+    .Return:
     ret
 endp
 

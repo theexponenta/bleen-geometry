@@ -3,7 +3,7 @@ BTNS_AUTOSIZE = 0010h
 
 MainWindow.wcexClass.ClassName du 'MAIN_WINDOW_CLASS', 0
 MainWindow.hwnd dd ?
-MainWindow.Title du 'Suck Dick', 0
+MainWindow.Title du 'BleenGeometry', 0
 
 MainWindow.Toolbar.hwnd dd ?
 MainWindow.ToolbarHeight = 40
