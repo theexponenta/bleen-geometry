@@ -38,24 +38,6 @@ endp
 
 
 proc AngleBisectorTool.Cancel
-    mov ecx, [AngleBisectorTool.SelectedPointsCount]
-    test ecx, ecx
-    jz .Return
-
-    cmp ecx, 2
-    jb @F
-
-    mov ebx, Objects
-    stdcall HeterogenousVector.Pop
-
-    @@:
-    mov ebx, Points
-    .DeletePointsLoop:
-        stdcall Main.DeleteLastPoint
-        loop .DeletePointsLoop
-
-    mov [AngleBisectorTool.SelectedPointsCount], 0
-
-    .Return:
+    stdcall Main.UndoTempHistory
     ret
 endp

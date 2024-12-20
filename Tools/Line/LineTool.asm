@@ -16,13 +16,8 @@ endp
 
 
 proc LineTool.Cancel uses ebx
-   mov ebx, Points
-   stdcall Main.DeleteLastPoint
-
-   mov ebx, Objects
-   stdcall HeterogenousVector.Pop
-
    mov [CurrentStateId], LineTool.States.SelectPoint1
+   stdcall Main.UndoTempHistory
 
    ret
 endp

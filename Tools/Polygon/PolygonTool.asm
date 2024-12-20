@@ -54,33 +54,8 @@ endp
 
 
 proc PolygonTool.Cancel uses ebx
-    cmp [PolygonTool.PolygonId], 0
-    je .Return
-
-    stdcall Main.GetObjectById, [PolygonTool.PolygonId]
-    mov [PolygonTool.pPolygon], eax
-    mov ecx, [NextObjectId]
-    sub ecx, [PolygonTool.NextObjectIdBeforeTool]
-    sub ecx, [eax + PolygonObj.SegmentsIds.Length] ; Segments - sides of polygon
-    sub ecx, 1 ; The polygon itself
-
-    mov ebx, Points
-    .DeletePointsLoop:
-        stdcall Main.DeleteLastPoint
-        loop .DeletePointsLoop
-
-    mov eax, [PolygonTool.pPolygon]
-    mov ecx, [eax + PolygonObj.SegmentsIds.Length]
-    add ecx, 1 ; The polygon itself
-    mov ebx, Objects
-    .DeleteSegementsAndPolygonLoop:
-        push ecx
-        stdcall HeterogenousVector.Pop
-        pop ecx
-        loop .DeleteSegementsAndPolygonLoop
-
+    stdcall Main.UndoTempHistory
     mov [PolygonTool.PolygonId], 0
 
-    .Return:
     ret
 endp

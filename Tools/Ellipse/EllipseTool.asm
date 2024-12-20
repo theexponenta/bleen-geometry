@@ -37,23 +37,8 @@ endp
 
 
 proc EllipseTool.Cancel
-    mov ecx, [EllipseTool.SelectedPointsCount]
-    test ecx, ecx
-    jz .Return
-
-    cmp ecx, 2
-    jb @F
-
-    mov ebx, Objects
-    stdcall HeterogenousVector.Pop
-
-    @@:
-    mov ebx, Points
-    .DeletePointsLoop:
-        stdcall Main.DeleteLastPoint
-        loop .DeletePointsLoop
-
     mov [EllipseTool.SelectedPointsCount], 0
+    stdcall Main.UndoTempHistory
 
     .Return:
     ret

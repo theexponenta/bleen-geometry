@@ -1,10 +1,20 @@
 
 proc Main.AddObject pObject, ObjectSize
+    local pNewObject dd ?
+
     mov ebx, Objects
     stdcall HeterogenousVector.Push, [pObject], [ObjectSize]
     inc [NextObjectId]
+    mov [pNewObject], eax
+
+    mov ebx, TempHistory
+    stdcall ChangeHistory.AddChange, ChangeHistoryRecord.Type.ADD_OBJECT, [pObject]
+
+    mov eax, [pNewObject]
+
     ret
 endp
+
 
 ; X, Y - SCREEN!!! coordinates
 ; Returns pointer to added Point object
@@ -39,6 +49,7 @@ endp
 ; Returns pointer to added Point object
 proc Main._AddPoint uses ebx, X, Y, pParentObject, Color, Width
     local NewPoint Point ?
+    local pNewPoint dd ?
 
     lea ebx, [NewPoint]
     mov eax, [NextPointNum]
@@ -48,9 +59,16 @@ proc Main._AddPoint uses ebx, X, Y, pParentObject, Color, Width
     push ebx
     mov ebx, Points
     stdcall Vector.Push
+    mov [pNewPoint], eax
 
     inc [NextObjectId]
     inc [NextPointNum]
+
+    lea eax, [NewPoint]
+    mov ebx, TempHistory
+    stdcall ChangeHistory.AddChange, ChangeHistoryRecord.Type.ADD_OBJECT, eax
+
+    mov eax, [pNewPoint]
 
     ret
 endp
@@ -180,6 +198,7 @@ proc Main.SetIntersectionPoint uses esi edi, IntersectionId, PointIndex, X, Y
     stdcall Main._AddPoint, [X], [Y], 0, Point.IntersectionDefaultColor, Point.DefaultSize
     mov edx, [IntersectionId]
     mov [eax + Point.IntersectionId], edx
+
     jmp .Return
 
     .SetPoint:
@@ -288,6 +307,7 @@ proc Main.AddPlot uses ebx, PlotType, pEquationStr
     jz .Error
 
     stdcall Main.AddObject, ebx, sizeof.Plot
+    stdcall Main.ToolAddedObject
 
     mov eax, 1
     jmp .Return

@@ -13,6 +13,7 @@ include 'ObjectsAddProc.asm'
 include 'Tools/Tools.inc'
 include 'Windows/ObjectSettings.inc'
 include 'Utils/MathParser/MathParser.inc'
+include 'ChangeHistory/ChangeHistory.inc'
 
 
 section '.text' code readable executable
@@ -42,6 +43,11 @@ proc WinMain
 
     mov ebx, Points
     stdcall Vector.Create, sizeof.Point, 0, 26
+
+    mov ebx, MainHistory
+    stdcall ChangeHistory.Create, ChangeHistory.InitialCapacity
+    mov ebx, TempHistory
+    stdcall ChangeHistory.Create, ChangeHistory.InitialCapacity
 
     mov ebx, ObjectSettingsWindow.Controls
     stdcall Vector.Create, sizeof.ObjectFieldInputControl, 0, ObjectSettingsWindow.Controls.InitialCapacity
@@ -266,6 +272,7 @@ endp
 ; A tool must call this function after it finished adding object
 proc Main.ToolAddedObject
     mov byte [ObjectsListWindow.NeedsRedraw], 1
+    stdcall Main._MergeTempAndMainHistory
     ret
 endp
 
@@ -724,6 +731,9 @@ proc Main.DeleteObjectById uses ebx esi edi, Id
         IsPoint db ?
     endl
 
+    mov ebx, MainHistory
+    stdcall ChangeHistory.StartNewGroup
+
     mov [IsPoint], 0
     mov eax, [Id]
     stdcall Main.FindPointIndexById
@@ -744,6 +754,7 @@ proc Main.DeleteObjectById uses ebx esi edi, Id
     movzx esi, byte [edx + GeometryObject.Type]
 
     @@:
+    stdcall ChangeHistory.AddChange, ChangeHistoryRecord.Type.DELETE_OBJECT, edx
     stdcall GeometryObject.IsDependableObjectType, esi
     test eax, eax
     jnz .MarkDependentObjects
@@ -780,6 +791,11 @@ proc Main.DeleteObjectById uses ebx esi edi, Id
         je @F
 
         push eax ecx edx
+        push eax
+        mov ebx, MainHistory
+        stdcall ChangeHistory.AddChange, ChangeHistoryRecord.Type.DELETE_OBJECT, edi
+        pop eax
+        mov ebx, Objects
         stdcall Main._DeleteObjectByIndex, eax
         pop edx ecx eax
         jmp .ObjectDeleted
@@ -805,6 +821,9 @@ proc Main.DeleteObjectById uses ebx esi edi, Id
         je @F
 
         push ecx
+        mov ebx, MainHistory
+        stdcall ChangeHistory.AddChange, ChangeHistoryRecord.Type.DELETE_OBJECT, edi
+        mov ebx, Points
         stdcall Vector.DeleteByIndex, esi
         pop ecx
         jmp .PointDeleted
@@ -816,6 +835,57 @@ proc Main.DeleteObjectById uses ebx esi edi, Id
         loop .DeleteMarkedPointsLoop
 
     mov byte [ObjectsListWindow.NeedsRedraw], 1
+
+    .Return:
+    ret
+endp
+
+
+proc Main._DeleteOnlyOneObjectById uses ebx, Id
+    mov eax, [Id]
+    stdcall Main.FindPointIndexById
+    cmp eax, -1
+    je .NotAPoint
+
+    mov ebx, Points
+    stdcall Vector.DeleteByIndex, eax
+    jmp .Return
+
+    .NotAPoint:
+    stdcall Main.GetObjectIndexById, [Id]
+    cmp eax, -1
+    je .Return
+
+    stdcall Main._DeleteObjectByIndex, eax
+
+    .Return:
+    ret
+endp
+
+
+proc Main._DeletePointsWithIntersectionId uses ebx edi esi, IntersectionId
+    mov ecx, [Points.Length]
+    test ecx, ecx
+    jz .Return
+
+    mov esi, [IntersectionId]
+    mov edi, [Points.Ptr]
+    mov ebx, Points
+    xor eax, eax
+    .DeleteLoop:
+        cmp [edi + Point.IntersectionId], esi
+        jne @F
+
+        push eax ecx
+        stdcall Vector.DeleteByIndex, eax
+        pop ecx eax
+        jmp .PointDeleted
+
+        @@:
+        add edi, sizeof.Point
+        inc eax
+        .PointDeleted:
+        loop .DeleteLoop
 
     .Return:
     ret
@@ -861,8 +931,15 @@ proc Main.DestroyAll uses ebx esi
 
     mov ebx, SelectedObjectsIds
     stdcall Vector.Destroy
+
     mov ebx, SelectedObjectsPtrs
     stdcall Vector.Destroy
+
+    mov ebx, MainHistory
+    stdcall ChangeHistory.Clear
+
+    mov ebx, TempHistory
+    stdcall ChangeHistory.Clear
 
     ret
 endp
@@ -878,6 +955,142 @@ proc Main.SetOpenedFile uses esi edi, pFilename
     mov [FileOpened], 1
 
     invoke EnableMenuItem, [MainWindow.hMainMenu], IDM_SAVE, MF_ENABLED
+
+    ret
+endp
+
+
+proc Main.StartNewTempChangeGroup uses ebx
+    mov ebx, TempHistory
+    stdcall ChangeHistory.StartNewGroup
+
+    ret
+endp
+
+
+proc Main._UndoChange uses ebx, pChangeRecord
+    mov eax, [pChangeRecord]
+    movzx edx, byte [eax + ChangeHistoryRecord.Type]
+    mov eax, [eax + ChangeHistoryRecord.Object.Ptr]
+    mov byte [eax + GeometryObject.ToBeDeleted], 0
+
+    cmp edx, ChangeHistoryRecord.Type.ADD_OBJECT
+    jne @F
+
+    push eax
+    stdcall Main._DeleteOnlyOneObjectById, [eax + GeometryObject.Id]
+    pop eax
+
+    cmp byte [eax + GeometryObject.Type], OBJ_INTERSECTION
+    jne .Return
+
+    stdcall Main._DeletePointsWithIntersectionId, [eax + GeometryObject.Id]
+
+    jmp .Return
+
+    @@:
+    cmp edx, ChangeHistoryRecord.Type.DELETE_OBJECT
+    jne @F
+
+    movzx edx, byte [eax + GeometryObject.Type]
+
+    cmp edx, OBJ_POINT
+    jne .NotAPoint
+
+    mov ebx, Points
+    stdcall Vector.Push, eax
+    jmp .Return
+
+    .NotAPoint:
+    mov ecx, edx
+    dec ecx
+    shl ecx, 2
+    add ecx, Objects.StructSizes
+
+    mov ebx, Objects
+    stdcall HeterogenousVector.Push, eax, [ecx]
+
+    @@:
+    .Return:
+    ret
+endp
+
+
+proc Main._UndoHistory uses ebx esi edi, pHistory
+    mov ebx, [pHistory]
+
+    mov eax, [ebx + ChangeHistory.History.Length]
+    test eax, eax
+    jz .Return
+
+    mov ecx, eax
+    mov esi, [ebx + ChangeHistory.History.Ptr]
+    dec eax
+    imul eax, sizeof.ChangeHistoryRecord
+    add esi, eax
+    mov edi, [esi + ChangeHistoryRecord.GroupId]
+
+    .UndoLoop:
+        push ecx
+        stdcall Main._UndoChange, esi
+        stdcall ChangeHistory.PopOne
+        pop ecx
+        sub esi, sizeof.ChangeHistoryRecord
+
+        mov eax, [esi + ChangeHistoryRecord.GroupId]
+        cmp edi, eax
+        jne .Return
+
+        mov edi, eax
+        loop .UndoLoop
+
+    .Return:
+    ret
+endp
+
+
+proc Main._MergeTempAndMainHistory uses ebx esi edi
+    mov ebx, MainHistory
+    stdcall ChangeHistory.StartNewGroup
+    mov edi, eax
+
+    mov esi, [TempHistory.History.Ptr]
+    mov ecx, [TempHistory.History.Length]
+    .MergeLoop:
+        push ecx
+        mov [esi + ChangeHistoryRecord.GroupId], edi
+        stdcall ChangeHistory.AddChangeRecord, esi
+        pop ecx
+
+        add esi, sizeof.ChangeHistoryRecord
+        loop .MergeLoop
+
+    mov ebx, TempHistory
+    stdcall ChangeHistory.ClearNoDestroy
+
+    ret
+endp
+
+
+proc Main.UndoMainHistory
+    stdcall Main._UndoHistory, MainHistory
+    ret
+endp
+
+
+proc Main.UndoTempHistory uses ebx
+    stdcall Main._UndoHistory, TempHistory
+
+    mov ebx, TempHistory
+    stdcall ChangeHistory.Clear
+
+    ret
+endp
+
+
+proc Main.ClearTempHistory uses ebx
+    mov ebx, TempHistory
+    stdcall ChangeHistory.Clear
 
     ret
 endp
@@ -900,6 +1113,7 @@ include 'Objects/Objects.asm'
 include 'Tools/Tools.asm'
 include 'Utils/FileIO/Writer.asm'
 include 'Utils/FileIO/Reader.asm'
+include 'ChangeHistory/ChangeHistory.asm'
 
 
 section '.data' data readable writeable
@@ -957,6 +1171,9 @@ section '.data' data readable writeable
   MAX_FILENAME_LENGTH = 256
   FileOpened db 0
   OpenFileName du MAX_FILENAME_LENGTH dup(?)
+
+  MainHistory ChangeHistory ?
+  TempHistory ChangeHistory ?
 
   include 'Windows/Main.d'
   include 'Windows/DrawArea.d'

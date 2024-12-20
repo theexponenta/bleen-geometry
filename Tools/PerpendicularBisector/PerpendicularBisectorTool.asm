@@ -43,8 +43,6 @@ endp
 
 
 proc PerpendicularBisectorTool.Cancel uses ebx
-    mov ebx, Objects
-    stdcall Vector.Pop
-
+    stdcall Main.UndoTempHistory
     ret
 endp

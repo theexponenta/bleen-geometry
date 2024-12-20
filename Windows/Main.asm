@@ -57,6 +57,7 @@ proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
         mov [CurrentToolId], eax
         mov [CurrentStateId], 1
         stdcall Main.UnselectObjects
+        stdcall Main.ClearTempHistory
         jmp .Return_0
 
     .Wmkeydown:
@@ -82,9 +83,18 @@ proc MainWindow.WindowProc uses ebx esi edi, hwnd, wmsg, wparam, lparam
 
         .CheckOpen:
         cmp eax, 'O'
-        jne .PostToDrawArea
+        jne .CheckUndo
 
         stdcall MainWindow.OpenFile
+        jmp .PostToDrawArea
+
+        .CheckUndo:
+        cmp eax, 'Z'
+        jne .PostToDrawArea
+
+        stdcall Main.UndoMainHistory
+        stdcall DrawArea.Redraw
+        stdcall ObjectsListWindow.Redraw
 
         .PostToDrawArea:
         invoke PostMessage, [DrawArea.hwnd], [wmsg], [wparam], [lparam]

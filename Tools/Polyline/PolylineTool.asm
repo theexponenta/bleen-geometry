@@ -48,21 +48,7 @@ endp
 
 
 proc PolylineTool.Cancel uses ebx
-    cmp [PolylineTool.pTempPolyline], 0
-    je .Return
-
-    mov ecx, [NextObjectId]
-    sub ecx, [PolylineTool.NextObjectIdBeforeTool]
-    sub ecx, 1 ; The polyline itself
-
-    mov ebx, Points
-    .DeletePointsLoop:
-        stdcall Main.DeleteLastPoint
-        loop .DeletePointsLoop
-
-    mov ebx, Objects
-    stdcall HeterogenousVector.Pop
-
+    stdcall Main.UndoTempHistory
     mov [PolylineTool.pTempPolyline], 0
 
     .Return:

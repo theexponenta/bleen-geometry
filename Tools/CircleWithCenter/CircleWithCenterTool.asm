@@ -16,13 +16,8 @@ endp
 
 
 proc CircleWithCenterTool.Cancel
-    mov ebx, Points
-    stdcall Main.DeleteLastPoint
-
-    mov ebx, Objects
-    stdcall HeterogenousVector.Pop
-
     mov [CurrentStateId], CircleWithCenterTool.States.SelectCenterPoint
+    stdcall Main.UndoTempHistory
 
     ret
 endp

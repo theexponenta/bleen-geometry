@@ -76,6 +76,12 @@ proc Vector.Pop
 endp
 
 
+proc Vector.Unpop
+    inc [ebx + Vector.Length]
+    ret
+endp
+
+
 proc Vector.DeleteByIndex, Index
      mov eax, [Index]
      imul eax, [ebx + Vector.ElementSize]
