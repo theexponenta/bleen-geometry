@@ -294,8 +294,8 @@ endp
 
 
 proc Intersection.ToString, pBuffer
-    invoke lstrcpyA, [pBuffer], Intersection.StrFormat
-    invoke lstrlenA, Intersection.StrFormat
+    invoke lstrcpyW, [pBuffer], Intersection.StrFormat
+    invoke lstrlenW, Intersection.StrFormat
 
     ret
 endp
