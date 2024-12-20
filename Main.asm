@@ -652,7 +652,7 @@ proc Main._MarkDependtendPointsToDelete uses ebx, Id
 
     mov ebx, [Points.Ptr]
     .MarkPointsLoop:
-        cmp [ebx + GeometryObject.ToBeDeleted], 0
+        cmp byte [ebx + GeometryObject.ToBeDeleted], 0
         jne .NextIteration
 
         push ecx
@@ -686,24 +686,26 @@ proc Main.MarkDependentObjectsToDelete uses ebx, Id
     mov ebx, [Objects.Ptr]
     mov edx, [Objects.Sizes.Ptr]
     .MarkObjectsToDeleteLoop:
+        cmp byte [ebx + GeometryObject.ToBeDeleted], 0
+        jne .NextIterationNopop
+
         push edx ecx
         stdcall GeometryObject.DependsOnObject, [Id]
         test eax, eax
         jz .NextIteration
 
+        mov byte [ebx + GeometryObject.ToBeDeleted], 1
+
         movzx eax, [ebx + GeometryObject.Type]
         stdcall GeometryObject.IsDependableObjectType, eax
         test eax, eax
-        jz @F
+        jz .NextIteration
 
         stdcall Main.MarkDependentObjectsToDelete, [ebx + GeometryObject.Id]
 
-        @@:
-        stdcall GeometryObject.Destroy
-        mov byte [ebx + GeometryObject.ToBeDeleted], 1
-
         .NextIteration:
         pop ecx edx
+        .NextIterationNopop:
         add ebx, [edx]
         add edx, 4
         loop .MarkObjectsToDeleteLoop
@@ -714,10 +716,6 @@ endp
 
 
 proc Main._DeleteObjectByIndex uses ebx, Index
-    mov ebx, Objects
-    stdcall HeterogenousVector.PtrByIndex, [Index]
-    mov ebx, eax
-    stdcall GeometryObject.Destroy
     mov ebx, Objects
     stdcall HeterogenousVector.DeleteByIndex, [Index]
 
@@ -754,12 +752,11 @@ proc Main.DeleteObjectById uses ebx esi edi, Id
     movzx esi, byte [edx + GeometryObject.Type]
 
     @@:
+    mov byte [edx + GeometryObject.ToBeDeleted], 1
     stdcall ChangeHistory.AddChange, ChangeHistoryRecord.Type.DELETE_OBJECT, edx
     stdcall GeometryObject.IsDependableObjectType, esi
     test eax, eax
-    jnz .MarkDependentObjects
-    cmp esi, OBJ_POLYGON
-    jne .DeleteRequestedObject
+    jz .DeleteRequestedObject
 
     .MarkDependentObjects:
     cmp [Objects.Sizes.Length], 0
@@ -856,7 +853,8 @@ proc Main._DeleteOnlyOneObjectById uses ebx, Id
     cmp eax, -1
     je .Return
 
-    stdcall Main._DeleteObjectByIndex, eax
+    mov ebx, Objects
+    stdcall HeterogenousVector.DeleteByIndex, eax
 
     .Return:
     ret

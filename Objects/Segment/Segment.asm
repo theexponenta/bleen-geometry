@@ -166,6 +166,33 @@ proc Segment.Move uses esi
 endp
 
 
+proc Segment.DependsOnObject uses ebx, Id
+    mov eax, 1
+
+    mov edx, [Id]
+    cmp [ebx + Segment.Point1Id], edx
+    je .Return
+    cmp [ebx + Segment.Point2Id], edx
+    je .Return
+
+    stdcall Main.GetObjectById, edx
+    test eax, eax
+    jz .Return
+
+    mov edx, eax
+    xor eax, eax
+    cmp byte [edx + GeometryObject.Type], OBJ_POLYGON
+    jne .Return
+
+    push [ebx + GeometryObject.Id]
+    mov ebx, edx
+    stdcall PolygonObj.DependsOnObject
+
+    .Return:
+    ret
+endp
+
+
 proc Segment.ToString, pBuffer
     mov eax, [ebx + Segment.Point2Id]
     stdcall Main.FindPointById

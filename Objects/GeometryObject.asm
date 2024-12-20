@@ -138,6 +138,9 @@ proc GeometryObject.IsDependableObjectType, Type
     cmp edx, OBJ_INTERSECTION
     je .Return
 
+    cmp edx, OBJ_POLYGON
+    je .Return
+
     stdcall GeometryObject.IsLineObjectType, edx
 
     .Return:
@@ -198,6 +201,13 @@ proc GeometryObject.DependsOnObject, Id
     jne @F
 
     stdcall Intersection.DependsOnObject, [Id]
+    jmp .Return
+
+    @@:
+    cmp eax, OBJ_SEGMENT
+    jne @F
+
+    stdcall Segment.DependsOnObject, [Id]
     jmp .Return
 
     @@:

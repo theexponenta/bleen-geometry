@@ -218,31 +218,31 @@ endp
 
 
 proc PolygonObj.Destroy uses ebx esi
-    mov esi, [ebx + PolygonObj.SegmentsIds.Ptr]
-    test esi, esi
-    jz .Return
+    ;mov esi, [ebx + PolygonObj.SegmentsIds.Ptr]
+    ;test esi, esi
+    ;jz .Return
 
-    mov ecx, [ebx + PolygonObj.SegmentsIds.Length]
-    test ecx, ecx
-    jz .Return
+    ;mov ecx, [ebx + PolygonObj.SegmentsIds.Length]
+    ;test ecx, ecx
+    ;jz .Return
 
     ; ToBeDeleted = 1 is a mark for procedure Main.DeleteObjectById to delete dependent objects
-    .MarkSegmentsToDelete:
-        push ecx
-        stdcall Main.GetObjectById, [esi]
-        pop ecx
+    ;.MarkSegmentsToDelete:
+    ;    push ecx
+    ;    stdcall Main.GetObjectById, [esi]
+    ;    pop ecx
 
-        test eax, eax
-        jz .NextIteration
+   ;     test eax, eax
+   ;     jz .NextIteration
+   ;
+   ;     mov byte [eax + Segment.ToBeDeleted], 1
 
-        mov byte [eax + Segment.ToBeDeleted], 1
+   ;     .NextIteration:
+   ;     add esi, 4
+   ;     loop .MarkSegmentsToDelete
 
-        .NextIteration:
-        add esi, 4
-        loop .MarkSegmentsToDelete
-
-    add ebx, PolygonObj.SegmentsIds
-    call Vector.Destroy
+   add ebx, PolygonObj.SegmentsIds
+   call Vector.Destroy
 
     .Return:
     ret
