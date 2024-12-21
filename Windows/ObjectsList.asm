@@ -2,6 +2,7 @@
 proc ObjectsListWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lparam
     locals
         ScrollbarInfo SCROLLBARINFO ?
+        WindowRect RECT ?
     endl
 
     mov eax, [wmsg]
@@ -91,13 +92,15 @@ proc ObjectsListWindow.WindowProc uses ebx esi edi, hWnd, wmsg, wparam, lparam
         jmp .Return_0
 
     .Wmsize:
-        mov [ScrollbarInfo.cbSize], sizeof.SCROLLBARINFO
-        lea eax, [ScrollbarInfo]
-        invoke GetScrollBarInfo, [hWnd], OBJID_VSCROLL, eax
+        lea eax, [WindowRect]
+        invoke GetWindowRect, [hWnd], eax
 
-        movzx eax, word [lparam]
-        add eax, [ScrollbarInfo.dxyLineButton]
-        movzx edx, word [lparam + 2]
+        mov eax, [WindowRect.right]
+        sub eax, [WindowRect.left]
+
+        mov edx, [WindowRect.bottom]
+        sub edx, [WindowRect.top]
+
         mov [ObjectsListWindow.Width], eax
         mov [ObjectsListWindow.Height], edx
         stdcall ObjectsListWindow._SetScrollPageAndRange

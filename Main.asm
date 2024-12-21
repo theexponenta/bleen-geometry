@@ -143,17 +143,28 @@ endp
 proc Main.CreateWindows
     locals
         ClientRect RECT ?
+        WorkArea RECT ?
         ClientWidth dd ?
         ClientHeight dd ?
     endl
 
     invoke LoadMenuA, [hInstance], IDR_MENU
     mov [MainWindow.hMainMenu], eax
+
+    lea eax, [WorkArea]
+    invoke SystemParametersInfoA, SPI_GETWORKAREA, 0, eax, 0
+
+    mov eax, [WorkArea.right]
+    sub eax, [WorkArea.left]
+
+    mov edx, [WorkArea.bottom]
+    sub edx, [WorkArea.top]
+
     invoke CreateWindowEx, 0, MainWindow.wcexClass.ClassName, MainWindow.Title, WS_OVERLAPPEDWINDOW, \
-                           0, 0, eax, edx, NULL, eax, [hInstance], NULL
+                           0, 0, eax, edx, NULL, [MainWindow.hMainMenu], [hInstance], NULL
 
     mov [MainWindow.hwnd], eax
-    invoke ShowWindow, eax, SW_MAXIMIZE
+    invoke ShowWindow, [MainWindow.hwnd], SW_MAXIMIZE
 
     lea edx, [ClientRect]
     invoke GetClientRect, [MainWindow.hwnd], edx
