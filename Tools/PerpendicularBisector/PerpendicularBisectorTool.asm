@@ -8,7 +8,7 @@ proc PerpendicularBisectorTool.SelectPointOrSegment
     cmp edx, OBJ_SEGMENT
     jne @F
 
-    stdcall Main.AddPerpendicularBisector, [eax + Segment.Point1Id], [eax + Segment.Point2Id]
+    stdcall Main.AddPerpendicularBisector, [eax + Segment.Point1Id], [eax + Segment.Point2Id], [eax + Segment.Id]
     jmp .Return
 
     @@:
@@ -16,7 +16,7 @@ proc PerpendicularBisectorTool.SelectPointOrSegment
     jne .Return
 
     mov edx, [eax + Point.Id]
-    stdcall Main.AddPerpendicularBisector, edx, 0
+    stdcall Main.AddPerpendicularBisector, edx, 0, 0
     mov [PerpendicularBisectorTool.pTempPerpendicularBisector], eax
     mov [CurrentStateId], PerpendicularBisectorTool.States.SelectSecondPoint
 

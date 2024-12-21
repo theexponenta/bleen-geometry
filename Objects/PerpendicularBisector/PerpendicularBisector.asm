@@ -1,12 +1,15 @@
 
-proc PerpendicularBisector.Create, Id, pName, pCaption, Point1Id, Point2id, Width, Color
+proc PerpendicularBisector.Create, Id, pName, pCaption, Point1Id, Point2Id, SegmentId, Width, Color
     stdcall GeometryObject.Create, [Id], OBJ_PERPENDICULAR_BISECTOR, [pName], [pCaption]
 
     mov eax, [Point1Id]
     mov [ebx + PerpendicularBisector.Point1Id], eax
 
-    mov eax, [Point2id]
+    mov eax, [Point2Id]
     mov [ebx + PerpendicularBisector.Point2Id], eax
+
+    mov eax, [SegmentId]
+    mov [ebx + PerpendicularBisector.SegmentId], eax
 
     mov eax, [Width]
     mov [ebx + PerpendicularBisector.Width], eax
