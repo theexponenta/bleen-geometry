@@ -1,5 +1,5 @@
 
-proc Plot.Create uses ebx, Id, pName, pCaption, PlotType, pEquationStr, Width, Color
+proc Plot.Create uses ebx, Id, pName, pCaption, PlotType, pXEquationStr, pYEquationStr, tMin, tMax, Width, Color
     stdcall GeometryObject.Create, [Id], OBJ_PLOT, [pName], [pCaption]
 
     mov eax, [Width]
@@ -11,17 +11,34 @@ proc Plot.Create uses ebx, Id, pName, pCaption, PlotType, pEquationStr, Width, C
     mov eax, [PlotType]
     mov byte [ebx + Plot.PlotType], al
 
-    mov eax, [pEquationStr]
-    mov [ebx + Plot.pEquationStr], eax
+    mov eax, [pXEquationStr]
+    mov [ebx + Plot.pXEquationStr], eax
 
-    add ebx, Plot.RPN
+    mov eax, [pYEquationStr]
+    mov [ebx + Plot.pYEquationStr], eax
+
+    mov eax, [tMin]
+    mov [ebx + Plot.tmin], eax
+
+    mov eax, [tMax]
+    mov [ebx + Plot.tmax], eax
+
+    add ebx, Plot.RPNY
+    stdcall ByteArray.Create, 0, 64
+    sub ebx, Plot.RPNY
+
+    cmp [PlotType], Plot.Type.Parametric
+    jne .Return
+
+    add ebx, Plot.RPNX
     stdcall ByteArray.Create, 0, 64
 
+    .Return:
     ret
 endp
 
 
-proc Plot.Draw uses edi esi, hDC
+proc Plot.DrawRegular uses edi esi, hDC
     locals
         PrevYScreen dd ?
         PrevXScreen dd ?
@@ -73,7 +90,7 @@ proc Plot.Draw uses edi esi, hDC
         fdiv [Scale]
         fstp [CurXPlane]
 
-        lea eax, [ebx + Plot.RPN]
+        lea eax, [ebx + Plot.RPNY]
         push ecx
         stdcall MathParser.Calculate, eax, [CurXPlane]
         pop ecx
@@ -192,8 +209,92 @@ proc Plot.Draw uses edi esi, hDC
 endp
 
 
+proc Plot.DrawParametric uses edi, hDC
+    locals
+        PointsCount dd ?
+        CurT dd ?
+        CurXScreen dd ?
+        CurYScreen dd ?
+        hPen dd ?
+    endl
+
+    invoke CreatePen, PS_SOLID, [ebx + Plot.Width], [ebx + Plot.Color]
+    mov [hPen], eax
+    invoke SelectObject, [hDC], eax
+
+    fld [ebx + Plot.tmax]
+    fsub [ebx + Plot.tmin]
+
+    mov ecx, [DrawArea.Width]
+    sub ecx, [ObjectsListWindow.Width]
+    shr ecx, 1
+    mov [PointsCount], ecx
+
+    fidiv [PointsCount]
+
+    fld [ebx + Plot.tmin]
+
+    .DrawLoop:
+        fst [CurT]
+
+        push ecx
+
+        lea eax, [ebx + Plot.RPNX]
+        stdcall MathParser.Calculate, eax, [CurT]
+        fmul [Scale]
+        fsubr [Translate.x]
+        fistp [CurXScreen]
+
+        lea eax, [ebx + Plot.RPNY]
+        stdcall MathParser.Calculate, eax, [CurT]
+        fmul [Scale]
+        fsubr [Translate.y]
+        fistp [CurYScreen]
+
+        pop ecx
+
+        push [CurYScreen] [CurXScreen]
+
+        fadd st0, st1
+        loop .DrawLoop
+
+    mov eax, esp
+    mov edi, [PointsCount]
+    invoke Polyline, [hDC], eax, edi
+    shl edi, 3
+    add esp, edi
+
+    invoke DeleteObject, [hPen]
+
+    fstp st0
+    fstp st0
+    ret
+endp
+
+
+proc Plot.Draw, hDC
+    mov eax, [hDC]
+
+    cmp byte [ebx + Plot.PlotType], Plot.Type.Regular
+    jne @F
+
+    stdcall Plot.DrawRegular, eax
+    jmp .Return
+
+    @@:
+    stdcall Plot.DrawParametric, eax
+
+    .Return:
+    ret
+endp
+
+
 proc Plot.IsOnPosition, X, Y
-    lea eax, [ebx + Plot.RPN]
+    xor eax, eax
+    cmp byte [ebx + Plot.PlotType], Plot.Type.Parametric
+    je .Return
+
+    lea eax, [ebx + Plot.RPNY]
     stdcall MathParser.Calculate, eax, [X]
     fsub [Y]
     fabs
@@ -203,12 +304,13 @@ proc Plot.IsOnPosition, X, Y
     fild [ebx + Plot.Width]
     fdiv [Scale]
     fcomip st0, st1
-    jb .Return
+    jb .Finish
 
     mov eax, 1
 
-    .Return:
+    .Finish:
     fstp st0
+    .Return:
     ret
 endp
 
@@ -219,14 +321,31 @@ endp
 
 
 proc Plot.ToString, pBuffer
-    cinvoke swprintf, [pBuffer], Plot.StrFormat, [ebx + Plot.pEquationStr]
+    cmp byte [ebx + Plot.PlotType], Plot.Type.Regular
+    jne @F
+
+    cinvoke swprintf, [pBuffer], Plot.StrFormatRegular, [ebx + Plot.pYEquationStr]
+    jmp .Return
+
+    @@:
+    cinvoke swprintf, [pBuffer], Plot.StrFormatParametric, [ebx + Plot.pXEquationStr], [ebx + Plot.pYEquationStr]
+
+    .Return:
     ret
 endp
 
 
 proc Plot.Destroy uses ebx
-    add ebx, Plot.RPN
+    add ebx, Plot.RPNY
+    stdcall ByteArray.Destroy
+    sub ebx, Plot.RPNY
+
+    cmp byte [ebx + Plot.PlotType], Plot.Type.Parametric
+    jne .Return
+
+    add ebx, Plot.RPNX
     stdcall ByteArray.Destroy
 
+    .Return:
     ret
 endp

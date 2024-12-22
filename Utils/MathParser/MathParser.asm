@@ -238,6 +238,7 @@ proc MathParser.Parse uses esi edi ebx, pSource, pOutBytearray, variableLetter
         fstp [Number]
         lea edi, [Number]
         stdcall ByteArray.PushSequence, edi, 4
+        inc esi
         jmp ..NextIteration
 
         ..ReadFunction:
@@ -602,4 +603,30 @@ proc MathParser.Calculate uses esi, pBytearray, VarValue
 
     .Return:
         ret
+endp
+
+
+; st0 - result
+; edx - 0 if error, nonzero otherwise
+proc MathParser.EvalConstantExpression uses ebx, pExpressionStr
+    locals
+        RPN ByteArray ?
+        Result dd ?
+    endl
+
+    lea ebx, [RPN]
+    stdcall ByteArray.Create, 0, 64
+
+    stdcall MathParser.Parse, [pExpressionStr], ebx, 0
+    test eax, eax
+    jz .Return
+
+    stdcall MathParser.Calculate, ebx, eax
+    mov eax, 1
+
+    .Return:
+    push eax
+    stdcall ByteArray.Destroy
+    pop eax
+    ret
 endp

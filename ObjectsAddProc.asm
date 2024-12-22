@@ -292,17 +292,31 @@ proc Main.AddParallelLine uses ebx, PointId, LineObjectId
 endp
 
 
-proc Main.AddPlot uses ebx, PlotType, pEquationStr
+proc Main.AddPlot uses ebx, PlotType, pXEquation, pYEquation, tMin, tMax
     locals
         NewPlot Plot ?
+        Variable dd ?
     endl
 
     lea ebx, [NewPlot]
-    stdcall Plot.Create, [NextObjectId], 0, 0, [PlotType], [pEquationStr], \
+    stdcall Plot.Create, [NextObjectId], 0, 0, [PlotType], [pXEquation], [pYEquation], [tMin], [tMax], \
                          GeometryObject.DefaultLineWidth, GeometryObject.DefaultLineColor
 
-    lea eax, [NewPlot.RPN]
-    stdcall MathParser.Parse, [pEquationStr], eax, 'x'
+    mov [Variable], 'x'
+
+    cmp [PlotType], Plot.Type.Regular
+    je @F
+
+    mov [Variable], 't'
+
+    lea eax, [NewPlot.RPNX]
+    stdcall MathParser.Parse, [pXEquation], eax, 't'
+    test eax, eax
+    jz .Error
+
+    @@:
+    lea eax, [NewPlot.RPNY]
+    stdcall MathParser.Parse, [pYEquation], eax, [Variable]
     test eax, eax
     jz .Error
 

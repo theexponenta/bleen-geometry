@@ -3,8 +3,12 @@ struct Plot GeometryObject
     Width dd ?
     Color dd ?
     PlotType db ?
-    pEquationStr dd ?
-    RPN ByteArray ?
+    pXEquationStr dd ?
+    pYEquationStr dd ?
+    tmin dd ?
+    tmax dd ?
+    RPNY ByteArray ?
+    RPNX ByteArray ?
 ends
 
 
@@ -16,9 +20,3 @@ Plot.Type.Parametric = 2
 Plot.DrawStates.NoPointsDrawn = 0
 Plot.DrawStates.PrevPointVisible = 1
 Plot.DrawStates.PrevPointInvisible = 2
-
-FIRST_POINT = 0
-VALUE_UNDEFINED = 1
-Y_OUT_OF_BOUNDS = 2
-VALUE_OK = 3
-X_OUT_OF_BOUNDS = 4

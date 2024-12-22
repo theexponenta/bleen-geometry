@@ -118,22 +118,9 @@ proc ObjectSettingsWindow.ColorPickerWindowProc uses ebx esi edi, hWnd, wmsg, wp
 endp
 
 
-proc ObjectSettingsWindow._GetWindowHeight, hwnd
-    locals
-        WindowRect RECT ?
-    endl
-
-    lea eax, [WindowRect]
-    invoke GetWindowRect, [hwnd], eax
-    mov eax, [WindowRect.bottom]
-    sub eax, [WindowRect.top]
-
-    ret
-endp
-
 
 proc ObjectSettingsWindow._IncreaseYOffset, hwnd, MarginBottom
-    stdcall ObjectSettingsWindow._GetWindowHeight, [hwnd]
+    stdcall WinAPIUtils.GetWindowHeight, [hwnd]
     add eax, [ObjectSettingsWindow.CurrentYOffset]
     add eax, [MarginBottom]
     mov [ObjectSettingsWindow.CurrentYOffset], eax
@@ -165,16 +152,11 @@ endp
 
 proc ObjectSettingsWindow._AddStaticControl, hwnd, pText
     locals
-        hDC dd ?
         Size SIZE ?
     endl
 
-    invoke GetDC, [hwnd]
-    mov [hDC], eax
-
-    invoke lstrlenW, [pText]
     lea edx, [Size]
-    invoke GetTextExtentPoint32W, [hDC], [pText], eax, edx
+    stdcall WinAPIUtils.GetTextSize, [hwnd], [pText], edx
 
     invoke CreateWindowEx, 0, STATICCLASSNAME, [pText], WS_VISIBLE or WS_CHILD, \
                            ObjectSettingsWindow.PaddingLeft, [ObjectSettingsWindow.CurrentYOffset], \

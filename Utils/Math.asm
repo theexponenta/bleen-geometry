@@ -33,6 +33,14 @@ proc Math.Distance X1, Y1, X2, Y2
 endp
 
 
+proc Math.AlignToStackSize, Num
+    mov eax, [Num]
+    add eax, 3
+    and eax, not 3
+    ret
+endp
+
+
 ; Calculates max(st0, st1), stores result in st0
 ; and deletes another number from the FPU stack
 proc Math.FPUMax

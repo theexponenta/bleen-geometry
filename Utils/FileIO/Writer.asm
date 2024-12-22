@@ -88,8 +88,17 @@ proc FileWriter.WriteGeometryObject uses ebx edi esi, hFile, pGeometryObject
     jne @F
 
     invoke WriteFile, esi, ebx, sizeof.Plot - sizeof.GeometryObject - sizeof.ByteArray - 4, edi, NULL
-    stdcall FileWriter.WriteCString, [ebx + Plot.pEquationStr - sizeof.GeometryObject]
-    add ebx, Plot.RPN - sizeof.GeometryObject
+
+    stdcall FileWriter.WriteCString, [ebx + Plot.pYEquationStr - sizeof.GeometryObject]
+    add ebx, Plot.RPNY - sizeof.GeometryObject
+    stdcall FileWriter.WriteByteArray, ebx
+
+    cmp byte [ebx + Plot.PlotType - Plot.RPNY], Plot.Type.Parametric
+    jne .Return
+
+    sub ebx, Plot.RPNY
+    stdcall FileWriter.WriteCString, [ebx + Plot.pXEquationStr]
+    add ebx, Plot.RPNX
     stdcall FileWriter.WriteByteArray, ebx
 
     jmp .Return

@@ -273,7 +273,7 @@ endp
 
 proc ObjectsListWindow._DrawListItem uses ebx, hDC, pObject
     locals
-        StrBuffer db 256 dup(?)
+        StrBuffer db 512 dup(?)
         CurrentHeightMinusScroll dd ?
     endl
 

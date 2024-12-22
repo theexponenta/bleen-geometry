@@ -22,6 +22,7 @@ section '.text' code readable executable
 proc WinMain
     local Msg MSG
     local CW dw ?
+    local TestBytearray ByteArray ?
 
     invoke GetProcessHeap
     mov [hProcessHeap], eax
@@ -32,7 +33,16 @@ proc WinMain
     or ax, 11b shl 8
     mov [CW], ax
     fldcw [CW]
-    
+
+    ;lea ebx, [TestBytearray]
+    ;stdcall ByteArray.Create, 0, 15
+    ;mov ecx, 1000
+    ;.PushLoop:
+    ;    push ecx
+    ;    stdcall ByteArray.PushWord
+    ;    pop ecx
+    ;    loop .PushLoop
+
     mov ebx, Objects
     stdcall HeterogenousVector.Create, 4096
 
@@ -1123,6 +1133,7 @@ include 'Tools/Tools.asm'
 include 'Utils/FileIO/Writer.asm'
 include 'Utils/FileIO/Reader.asm'
 include 'ChangeHistory/ChangeHistory.asm'
+include 'Utils/WinAPI.asm'
 
 
 section '.data' data readable writeable
@@ -1137,7 +1148,7 @@ section '.data' data readable writeable
   STATICCLASSNAME du "static", 0
   EDITCLASSNAME du "edit", 0
   BUTTONCLASSNAME du "button", 0
-  EDITCLASSNAME_ASCII db "edit", 0
+  COMBOBOXCLASSNAME du "combobox", 0
 
   WindowClass WNDCLASSEX sizeof.WNDCLASSEX, 0, NULL, 0, 0, NULL, NULL, NULL, \
                          COLOR_BTNFACE + 1, NULL, NULL

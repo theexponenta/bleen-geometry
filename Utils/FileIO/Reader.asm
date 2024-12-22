@@ -114,8 +114,17 @@ proc FileReader.ReadGeometryObject uses ebx esi, hFile, pGeometryObject
 
     invoke ReadFile, esi, ebx, sizeof.Plot - sizeof.GeometryObject - sizeof.ByteArray - 4, edx, NULL
     stdcall FileReader.ReadCString
-    mov [ebx + Plot.pEquationStr - sizeof.GeometryObject], eax
-    add ebx, Plot.RPN - sizeof.GeometryObject
+    mov [ebx + Plot.pYEquationStr - sizeof.GeometryObject], eax
+    add ebx, Plot.RPNY - sizeof.GeometryObject
+    stdcall FileReader.ReadByteArray, ebx
+
+    cmp byte [ebx - Plot.RPNY + Plot.PlotType], Plot.Type.Parametric
+    jne .Return
+
+    sub ebx, Plot.RPNY
+    stdcall FileReader.ReadCString
+    mov [ebx + Plot.pXEquationStr], eax
+    add ebx, Plot.RPNX
     stdcall FileReader.ReadByteArray, ebx
 
     jmp .Return
