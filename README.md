@@ -1,9 +1,11 @@
 # BleenGeometry
 Продолжение и развитие проекта с Mini Bleenchiki\
 \
-BleenGeometry - программа для создания динамических геометрических построений и графиков математических функций, сделанная по подобию [GeoGebra](https://geogebra.org/geometry) и [Desmos](https://www.desmos.com/calculator), написанная полностью на ассемблере FASM. Для вывода графики используется стандартный Windows GDI, никакие сторонние графические библиотеки не используются.
+BleenGeometry - программа для создания динамических геометрических построений и графиков математических функций, сделанная по подобию [GeoGebra](https://geogebra.org/geometry) и [Desmos](https://www.desmos.com/calculator), написанная полностью на ассемблере FASM. Для вывода графики используется стандартный Windows GDI, никакие сторонние графические библиотеки не используются.\
+\
+[Скачать](https://github.com/theexponenta/bleen-geometry/releases/tag/v1.0.0)
 
-
+\
 ![Общий вид программы](screenshots/BleenGeometry.png)
 
 
