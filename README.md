@@ -1,5 +1,5 @@
 # BleenGeometry
-Продолжение и развитие проекта с Mini Bleenchiki\
+Продолжение и развитие проекта с [Mini Bleenchiki](https://github.com/theexponenta/dos-plotter)\
 \
 BleenGeometry - программа для создания динамических геометрических построений и графиков математических функций, сделанная по подобию [GeoGebra](https://geogebra.org/geometry) и [Desmos](https://www.desmos.com/calculator), написанная полностью на ассемблере FASM. Для вывода графики используется стандартный Windows GDI, никакие сторонние графические библиотеки не используются.
 
